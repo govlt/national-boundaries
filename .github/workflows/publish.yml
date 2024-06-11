@@ -1,0 +1,132 @@
+name: "Basemap vector: sync and transform data sources"
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions: { }
+
+jobs:
+  transform-municipalities-geojson:
+    name: Transform municipalities GeoJson
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container: ghcr.io/osgeo/gdal:ubuntu-full-3.9.0
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download adr_gra_savivaldybes.json
+        run: wget -O adr_gra_savivaldybes.json -nv "https://www.registrucentras.lt/aduomenys/?byla=adr_gra_savivaldybes.json"
+
+      - name: Create directory
+        run: mkdir -p output/espg-4326
+
+      - name: Transform to EPSG:4326 compliant with RFC 7946
+        run: ogr2ogr -f GeoJSON output/espg-4326/municipalities.json -lco RFC7946=YES -t_srs EPSG:4326 adr_gra_savivaldybes.json
+
+      - name: Transform to FlatGeobuf with spatial index
+        run: ogr2ogr -f FlatGeobuf output/espg-4326/municipalities.fgb -lco SPATIAL_INDEX=YES output/espg-4326/municipalities.json
+
+      - name: Transform to GeoPackage
+        run: ogr2ogr -f GPKG output/espg-4326/municipalities.gpkg.zip output/espg-4326/municipalities.json
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: municipalities
+          path: output
+          if-no-files-found: error
+
+  generate-pmtiles:
+    name: Generate PMTiles
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs:
+      - transform-municipalities-geojson
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Download municipalities artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: municipalities
+          path: data/sources
+          merge-multiple: true
+
+      - name: Generate vector basemap PMTiles
+        shell: bash
+        run: ./gradlew -q run | tee logs-planetiler.txt
+
+      - name: Upload PMTiles artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pmtiles
+          path: data/output
+          if-no-files-found: error
+          compression-level: 0
+
+      - name: Upload PlaneTiler generate logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-planetiler
+          path: logs-planetiler.txt
+          if-no-files-found: error
+
+  publish-page:
+    name: Publish page
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs:
+      - transform-municipalities-geojson
+      - generate-pmtiles
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Download municipalities artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: municipalities
+          path: output
+          merge-multiple: true
+
+      - name: Download styles artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pmtiles
+          path: output/pmtiles
+          merge-multiple: true
+
+      - name: Publish to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        id: cloudflare
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_PAGES_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_PAGES_ACCOUNT_ID }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          projectName: national-boundaries
+          directory: output
+          wranglerVersion: '3'
+
+      - name: Upload page artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: page
+          path: .
