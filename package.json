@@ -1,0 +1,24 @@
+{
+  "name": "national-boundaries",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest",
+    "coverage": "vitest run --coverage"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@turf/helpers": "^7.0.0",
+    "@turf/intersect": "^7.0.0",
+    "@turf/turf": "^7.0.0",
+    "flatgeobuf": "^3.31.1",
+    "ol": "^9.2.4"
+  },
+  "devDependencies": {
+    "local-web-server": "^5.3.3",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
+  }
+}
