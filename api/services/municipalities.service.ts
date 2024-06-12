@@ -31,6 +31,7 @@ import {CREATE_ONLY_READ_ACTIONS} from '../types';
 
             geom: {
                 type: 'any',
+                hidden: "byDefault",
                 geom: {
                     type: 'geom',
                 },

@@ -27,12 +27,10 @@ import {CREATE_ONLY_READ_ACTIONS} from '../types';
                 primaryKey: true,
                 secure: true,
             },
-
             geom: {
                 type: 'any',
                 geom: {
                     type: 'geom',
-
                 },
                 // get: ({value}: FieldHookCallback) => value.toString('utf-8'),
             },
