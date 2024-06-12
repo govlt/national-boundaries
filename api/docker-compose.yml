@@ -1,0 +1,14 @@
+name: national-boundaries-api-local
+
+services:
+  national-boundaries-api:
+    build: .
+    pull_policy: always
+    restart: unless-stopped
+    networks:
+      - internal
+    ports:
+      - 9321:3000
+
+networks:
+  internal:
