@@ -1,0 +1,17 @@
+name: national-boundaries-local
+
+services:
+  tileserver-gl:
+    image: maptiler/tileserver-gl:v4.11.1
+    restart: unless-stopped
+    volumes:
+      - ./preview/tileserver-config.json:/opt/config/config.json:ro
+      - ./data/output:/opt/data:ro
+    command: --config /opt/config/config.json
+    networks:
+      - internal
+    ports:
+      - 8080:8080
+
+networks:
+  internal:

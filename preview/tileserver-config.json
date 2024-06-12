@@ -1,0 +1,10 @@
+{
+  "data": {
+    "counties": {
+      "pmtiles": "/opt/data/counties.pmtiles"
+    },
+    "municipalities": {
+      "pmtiles": "/opt/data/municipalities.pmtiles"
+    }
+  }
+}

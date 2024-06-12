@@ -4,23 +4,22 @@ import com.onthegomap.planetiler.FeatureCollector;
 import com.onthegomap.planetiler.reader.SourceFeature;
 import lt.startupgov.boundaries.constants.Source;
 
-public class Municipalities implements Layer {
+public class Elderships implements Layer {
 
     @Override
     public void processFeature(SourceFeature sf, FeatureCollector features) {
-        if (sf.getSource().equals(Source.MUNICIPALITIES) && sf.canBePolygon()) {
+        if (sf.getSource().equals(Source.ELDERSHIPS) && sf.canBePolygon()) {
             var fid = sf.getLong("FID");
 
-            features.polygon(Source.MUNICIPALITIES)
+            features.polygon(Source.ELDERSHIPS)
                     .setBufferPixels(4)
                     .setMinPixelSizeAtAllZooms(0)
                     .setId(fid)
                     .setAttr("id", fid)
-                    .setAttr("hello", "hello")
-                    .setAttr("area", sf.getTag("SAV_PLOTAS"))
-                    .setAttr("code", sf.getTag("SAV_KODAS"))
-                    .setAttr("county_code", sf.getTag("APS_KODAS"))
-                    .setAttr("name", sf.getTag("SAV_PAV"));
+                    .setAttr("name", sf.getTag("SEN_PAV"))
+                    .setAttr("code", sf.getTag("SEN_KODAS"))
+                    .setAttr("area", sf.getTag("SEN_PLOTAS"))
+                    .setAttr("municipality_code", sf.getTag("SAV_KODAS"));
         }
     }
 }
