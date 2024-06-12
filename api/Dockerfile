@@ -71,5 +71,7 @@ ENV TZ=Etc/GMT
 # Expose application port
 EXPOSE 3000
 
+ENV SERVICEDIR=dist/services
+
 # Start the server
 CMD ["sh", "-c", "yarn start"]
