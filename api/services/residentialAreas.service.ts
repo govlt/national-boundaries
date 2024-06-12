@@ -41,7 +41,7 @@ import {CREATE_ONLY_READ_ACTIONS} from '../types';
                 type: 'string',
                 columnName: 'municipalityCode',
                 populate: (ctx: Context, values: string[]) =>
-                    ctx.call('boundaries.municipalities.resolve', {code: values, mapping: true}),
+                    ctx.call('municipalities.resolve', {code: values, mapping: true}),
             },
         },
     },

@@ -9,6 +9,14 @@ export const boundariesConfig = {
         filename: './boundaries.sqlite',
     },
     useNullAsDefault: true,
-    pool: {min: 0, max: 7},
+    pool: {
+        min: 1,
+        max: 7,
+        afterCreate: (conn: any, done: any) => {
+            conn.loadExtension(`mod_spatialite`);
+
+            done(null, conn);
+        },
+    },
     ...knexSnakeCaseMappers(),
 };

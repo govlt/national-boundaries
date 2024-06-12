@@ -3,7 +3,7 @@ name: national-boundaries-api-local
 services:
   national-boundaries-api:
     build: .
-    pull_policy: always
+    pull_policy: build
     restart: unless-stopped
     networks:
       - internal

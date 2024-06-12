@@ -46,6 +46,8 @@ FROM base
 # Set the working directory
 WORKDIR /app
 
+RUN apk add --no-cache libspatialite
+
 # Install only production dependencies
 COPY package.json yarn.lock ./
 RUN yarn install --immutable --immutable-cache --inline-builds --production \

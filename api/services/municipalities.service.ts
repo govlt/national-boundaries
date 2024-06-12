@@ -42,7 +42,7 @@ import {CREATE_ONLY_READ_ACTIONS} from '../types';
                 type: 'string',
                 columnName: 'countyCode',
                 populate: (ctx: Context, values: string[]) =>
-                    ctx.call('boundaries.counties.resolve', {code: values, mapping: true}),
+                    ctx.call('counties.resolve', {code: values, mapping: true}),
             },
         },
     },
