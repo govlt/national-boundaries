@@ -1,4 +1,4 @@
-name: "Basemap vector: sync and transform data sources"
+name: Publish PMTiles
 
 on:
   push:
