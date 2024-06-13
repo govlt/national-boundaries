@@ -19,10 +19,14 @@ ADD https://www.registrucentras.lt/aduomenys/?byla=adr_gra_gyvenamosios_vietoves
 RUN ogr2ogr -append -f SQLite boundaries.sqlite residential_areas.json -lco FID=id -lco GEOMETRY_NAME=geom -sql "SELECT FID AS id, GYV_KODAS AS code, GYV_PAV as name, PLOTAS as area_ha, SAV_KODAS AS municipality_code FROM residential_areas"
 
 # Stage 2: Base image
-FROM node:20-alpine as base
+FROM node:20 as base
 
 # Required for dependencies coming from git
-RUN apk add --no-cache git
+RUN apt-get update && apt-get install -y \
+  git \
+  spatialite-bin \
+  libsqlite3-mod-spatialite \
+  && rm -rf /var/lib/apt/lists/*
 
 # Stage 3: Builder image
 FROM base as builder
@@ -46,8 +50,6 @@ FROM base
 # Set the working directory
 WORKDIR /app
 
-RUN apk add --no-cache libspatialite
-
 # Install only production dependencies
 COPY package.json yarn.lock ./
 RUN yarn install --immutable --immutable-cache --inline-builds --production \
@@ -67,11 +69,10 @@ ENV ENVIRONMENT=${ENVIRONMENT}
 # Set default environment variables
 ENV NODE_ENV=production
 ENV TZ=Etc/GMT
+ENV SERVICEDIR=dist/services
 
 # Expose application port
 EXPOSE 3000
-
-ENV SERVICEDIR=dist/services
 
 # Start the server
 CMD ["sh", "-c", "yarn start"]

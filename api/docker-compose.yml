@@ -3,6 +3,7 @@ name: national-boundaries-api-local
 services:
   national-boundaries-api:
     build: .
+    platform: linux/amd64
     pull_policy: build
     restart: unless-stopped
     networks:
