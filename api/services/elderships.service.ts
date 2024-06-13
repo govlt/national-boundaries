@@ -32,9 +32,7 @@ import {CREATE_ONLY_READ_ACTIONS} from '../types';
                 geom: {
                     type: 'geom',
                 },
-                // get: ({value}: FieldHookCallback) => value.toString('utf-8'),
             },
-
             email: 'string',
             name: 'string',
             area: 'number',
