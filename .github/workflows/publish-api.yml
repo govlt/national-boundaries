@@ -6,8 +6,6 @@ on:
       - main
     tags:
       - '[0-9]+.[0-9]+.[0-9]+'
-
-  pull_request:
   workflow_dispatch:
 
 permissions: { }
@@ -26,7 +24,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build & tag docker image
+      - name: Build, tag & push docker image
         uses: AplinkosMinisterija/reusable-workflows/.github/actions/docker-build-tag-push@main
         id: docker
         with:
