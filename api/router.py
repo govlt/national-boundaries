@@ -32,14 +32,14 @@ def create_boundaries_router(
 ):
     router = APIRouter()
 
-    @router.post("/", response_model=Page[response_model], summary=f"Paginated list of {item_name_plural}")
-    def boundaries_list(
+    @router.post("/search", response_model=Page[response_model], summary=f"Paginated list of {item_name_plural}")
+    def boundaries_search(
             request: schemas.GeometryFilterRequest,
             db: Session = Depends(database.get_db),
             boundaries_filter: Filter = FilterDepends(query_filter),
             srid: int = _srid_query,
     ):
-        return boundary_service.get_paginated_list(
+        return boundary_service.search(
             db=db, wkt=request.wkt, srid=srid, query_filter=boundaries_filter
         )
 

@@ -71,7 +71,7 @@ class BoundaryService[M, S, G]:
 
         return db.execute(query).first()
 
-    def get_paginated_list(
+    def search(
             self, db: Session, wkt: Optional[str], srid: int, query_filter: Filter
     ) -> Page[S]:
         query = self.select_func(self.base_columns)
