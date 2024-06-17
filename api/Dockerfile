@@ -47,6 +47,7 @@ WORKDIR /opt/app
 
 # Required for using SpatialLite
 RUN apt-get update && apt-get install -y \
+  curl \
   spatialite-bin \
   libsqlite3-mod-spatialite \
   && rm -rf /var/lib/apt/lists/*
