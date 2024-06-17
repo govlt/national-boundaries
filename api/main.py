@@ -1,5 +1,7 @@
+import uvicorn
 from fastapi import FastAPI
 from fastapi_pagination import add_pagination
+from starlette import status
 
 import filters
 import models
@@ -83,4 +85,14 @@ app.include_router(
     tags=["residential-areas"],
 )
 
+app.include_router(router.health_check_router)
+
 add_pagination(app)
+
+
+def main() -> None:
+    uvicorn.run("main:app", host="0.0.0.0", server_header=False)
+
+
+if __name__ == "__main__":
+    main()

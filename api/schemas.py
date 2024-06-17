@@ -64,5 +64,16 @@ class ResidentialAreaWithGeometry(Eldership):
     geometry: Geometry
 
 
+class HealthCheck(BaseModel):
+    """Response model to validate and return when performing a health check."""
+
+    healthy: bool
+
+
 class HTTPExceptionResponse(BaseModel):
     detail: str
+
+    class Config:
+        schema_extra = {
+            "example": {"detail": "HTTPException raised."},
+        }
