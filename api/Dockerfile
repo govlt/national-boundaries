@@ -56,8 +56,8 @@ ENV VIRTUAL_ENV=/app/.venv \
     SPATIALITE_LIBRARY_PATH=mod_spatialite.so
 
 COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
-COPY --from=database-builder --chmod=444 /opt/database/boundaries.sqlite ./
-
 COPY . .
+
+COPY --from=database-builder --chmod=444 /opt/database/boundaries.sqlite ./
 
 CMD ["fastapi", "run", "main.py", "--port", "80"]
