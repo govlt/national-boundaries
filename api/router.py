@@ -1,7 +1,6 @@
 from typing import Any
 
 from fastapi import HTTPException, APIRouter, Depends
-from fastapi.openapi.models import Response
 from fastapi.params import Query
 from fastapi_filter import FilterDepends
 from fastapi_filter.contrib.sqlalchemy import Filter
@@ -66,7 +65,7 @@ def create_boundaries_router(
         else:
             raise HTTPException(
                 status_code=404,
-                detail=f"Not found with code={code}",
+                detail="Not found",
             )
 
     @router.get(
@@ -87,7 +86,7 @@ def create_boundaries_router(
         else:
             raise HTTPException(
                 status_code=404,
-                detail=f"Not found with code={code}",
+                detail="Not found",
             )
 
     return router
