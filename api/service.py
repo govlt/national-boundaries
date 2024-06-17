@@ -16,6 +16,7 @@ import schemas
 _county_object = func.json_object(
     text("'code', counties.code"),
     text("'name', counties.name"),
+    text("'feature_id', counties.feature_id"),
     text("'area_ha', counties.area_ha"),
     type_=JSONB,
 ).label("county")
@@ -23,6 +24,7 @@ _county_object = func.json_object(
 _municipality_object = func.json_object(
     text("'code', municipalities.code"),
     text("'name', municipalities.name"),
+    text("'feature_id', municipalities.feature_id"),
     text("'area_ha', municipalities.area_ha"),
     "county", _county_object,
     type_=JSONB,
@@ -90,6 +92,7 @@ county_service = BoundaryService[models.Counties, schemas.County, schemas.County
     base_columns=[
         models.Counties.name,
         models.Counties.code,
+        models.Counties.feature_id,
         models.Counties.area_ha,
     ],
     code_column=models.Counties.code,
@@ -103,6 +106,7 @@ municipalities_service = BoundaryService[
     base_columns=[
         models.Municipalities.name,
         models.Municipalities.code,
+        models.Municipalities.feature_id,
         models.Municipalities.area_ha,
         _county_object,
     ],
@@ -119,6 +123,7 @@ elderships_service = BoundaryService[
     base_columns=[
         models.Elderships.name,
         models.Elderships.code,
+        models.Elderships.feature_id,
         models.Elderships.area_ha,
         _municipality_object,
     ],
@@ -135,6 +140,7 @@ residential_areas_service = BoundaryService[
     base_columns=[
         models.ResidentialAreas.name,
         models.ResidentialAreas.code,
+        models.ResidentialAreas.feature_id,
         models.ResidentialAreas.area_ha,
         _municipality_object,
     ],

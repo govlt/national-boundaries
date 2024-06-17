@@ -9,6 +9,7 @@ class Geometry(BaseModel):
 class County(BaseModel):
     code: str
     name: str
+    feature_id: int
     area_ha: float
 
     class Config:
@@ -22,6 +23,7 @@ class CountyWithGeometry(County):
 class Municipality(BaseModel):
     code: str
     name: str
+    feature_id: int
     area_ha: float
 
     county: County
@@ -37,6 +39,7 @@ class MunicipalityWithGeometry(Municipality):
 class Eldership(BaseModel):
     code: str
     name: str
+    feature_id: int
     area_ha: float
 
     municipality: Municipality
@@ -52,6 +55,7 @@ class EldershipWithGeometry(Eldership):
 class ResidentialArea(BaseModel):
     code: str
     name: str
+    feature_id: int
     area_ha: float
 
     municipality: Municipality

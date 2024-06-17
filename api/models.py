@@ -8,8 +8,8 @@ from database import Base
 class Counties(Base):
     __tablename__ = "counties"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    code = Column(String, nullable=False)
+    feature_id = Column(Integer, primary_key=True)
+    code = Column(String, nullable=False, index=True)
     name = Column(String, nullable=False)
     area_ha = Column(Double, nullable=False)
     geom = Column(
@@ -22,8 +22,8 @@ class Counties(Base):
 class Municipalities(Base):
     __tablename__ = "municipalities"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    code = Column(String, nullable=False)
+    feature_id = Column(Integer, primary_key=True)
+    code = Column(String, nullable=False, index=True)
     name = Column(String, nullable=False)
     area_ha = Column(Double, nullable=False)
     county_code = Column(String, ForeignKey("counties.code"))
@@ -40,8 +40,8 @@ class Municipalities(Base):
 class Elderships(Base):
     __tablename__ = "elderships"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    code = Column(String, nullable=False)
+    feature_id = Column(Integer, primary_key=True)
+    code = Column(String, nullable=False, index=True)
     name = Column(String, nullable=False)
     area_ha = Column(Double, nullable=False)
     municipality_code = Column(String, ForeignKey("municipalities.code"))
@@ -55,8 +55,8 @@ class Elderships(Base):
 class ResidentialAreas(Base):
     __tablename__ = "residential_areas"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    code = Column(String, nullable=False)
+    feature_id = Column(Integer, primary_key=True)
+    code = Column(String, nullable=False, index=True)
     name = Column(String, nullable=False)
     area_ha = Column(Double, nullable=False)
     municipality_code = Column(String, ForeignKey("municipalities.code"))
