@@ -32,20 +32,15 @@ def create_boundaries_router(
 ):
     router = APIRouter()
 
-    @router.get("/", response_model=Page[response_model], summary=f"Paginated list of {item_name_plural}")
+    @router.post("/", response_model=Page[response_model], summary=f"Paginated list of {item_name_plural}")
     def boundaries_list(
+            request: schemas.GeometryFilterRequest,
             db: Session = Depends(database.get_db),
             boundaries_filter: Filter = FilterDepends(query_filter),
-            wkt: str = Query(
-                None,
-                description="Filter by intersecting geometry by Well-Known text (WKT) ",
-                example="POLYGON ((25.277429 54.687233, 25.277429 54.680658, 25.289244 54.680658, 25.289244 54.687233, "
-                        "25.277429 54.687233))",
-            ),
             srid: int = _srid_query,
     ):
         return boundary_service.get_paginated_list(
-            db=db, wkt=wkt, srid=srid, query_filter=boundaries_filter
+            db=db, wkt=request.wkt, srid=srid, query_filter=boundaries_filter
         )
 
     @router.get(

@@ -1,4 +1,6 @@
-from pydantic import BaseModel
+from typing import Optional
+
+from pydantic import BaseModel, Field
 
 
 class Geometry(BaseModel):
@@ -81,3 +83,14 @@ class HTTPExceptionResponse(BaseModel):
         json_schema_extra = {
             "example": {"detail": "HTTPException raised."},
         }
+
+
+class GeometryFilterRequest(BaseModel):
+    wkt: Optional[str] = Field(
+        default=None,
+        description="Filter by intersecting geometry by Well-Known text (WKT) ",
+        examples=[
+            "POLYGON ((25.277429 54.687233, 25.277429 54.680658, 25.289244 54.680658, 25.289244 54.687233, "
+            "25.277429 54.687233))"
+        ],
+    )
