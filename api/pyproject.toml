@@ -2,7 +2,7 @@
 name = "api"
 version = "0.1.0"
 description = ""
-authors = ["Karolis Vyčius <k.vycius@gmail.com>"]
+authors = ["Karolis Vyčius <karolis@vycius.lt>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
@@ -13,6 +13,7 @@ fastapi-filter = "^2.0.0"
 fastapi-pagination = "^0.12.25"
 sqlalchemy = "^2.0.30"
 geoalchemy2 = "^0.15.1"
+sentry-sdk = {extras = ["fastapi", "sqlalchemy"], version = "^2.5.1"}
 
 
 [tool.poetry.group.dev.dependencies]

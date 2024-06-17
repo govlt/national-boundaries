@@ -1,3 +1,6 @@
+import os
+
+import sentry_sdk
 import uvicorn
 from fastapi import FastAPI
 from fastapi_pagination import add_pagination
@@ -8,6 +11,13 @@ import router
 import schemas
 import service
 from database import engine
+
+if SENTRY_DSN := os.environ.get("SENTRY_DSN"):
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        traces_sample_rate=1.0,
+        profiles_sample_rate=1.0,
+    )
 
 app = FastAPI(
     title="National boundaries API",

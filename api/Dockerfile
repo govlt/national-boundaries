@@ -53,7 +53,10 @@ RUN apt-get update && apt-get install -y \
 
 ENV VIRTUAL_ENV=/app/.venv \
     PATH="/app/.venv/bin:$PATH" \
-    SPATIALITE_LIBRARY_PATH=mod_spatialite.so
+    SPATIALITE_LIBRARY_PATH=mod_spatialite.so \
+    SENTRY_DSN="" \
+    SENTRY_ENVIRONMENT="production"
+
 
 COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 COPY . .
