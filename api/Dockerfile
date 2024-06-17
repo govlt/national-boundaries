@@ -23,6 +23,8 @@ ADD https://www.registrucentras.lt/aduomenys/?byla=adr_gra_gyvenamosios_vietoves
 RUN ogr2ogr -append -f SQLite boundaries.sqlite residential_areas.json -lco FID=feature_id -lco GEOMETRY_NAME=geom -sql "SELECT FID AS feature_id, CAST(GYV_KODAS AS character(255)) AS code, GYV_PAV as name, PLOTAS as area_ha, SAV_KODAS AS municipality_code FROM residential_areas"
 RUN ogrinfo -sql "CREATE UNIQUE INDEX residential_areas_code ON residential_areas(code)" boundaries.sqlite
 
+RUN ogrinfo boundaries.sqlite -sql "VACUUM"
+
 
 # Multi stage poetry docker build https://medium.com/@albertazzir/blazing-fast-python-docker-builds-with-poetry-a78a66f5aed0
 FROM python:3.12 as builder
