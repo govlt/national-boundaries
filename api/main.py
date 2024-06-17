@@ -1,7 +1,6 @@
 import uvicorn
 from fastapi import FastAPI
 from fastapi_pagination import add_pagination
-from starlette import status
 
 import filters
 import models
@@ -39,7 +38,7 @@ app.include_router(
         item_name="county",
         item_name_plural="counties"
     ),
-    prefix="/counties",
+    prefix="/v1/counties",
     tags=["counties"],
 )
 
@@ -53,7 +52,7 @@ app.include_router(
         item_name_plural="municipalities"
 
     ),
-    prefix="/municipalities",
+    prefix="/v1/municipalities",
     tags=["municipalities"],
 )
 
@@ -67,7 +66,7 @@ app.include_router(
         item_name_plural="elderships"
 
     ),
-    prefix="/elderships",
+    prefix="/v1/elderships",
     tags=["elderships"],
 )
 
@@ -81,7 +80,7 @@ app.include_router(
         item_name_plural="residential areas"
 
     ),
-    prefix="/residential-areas",
+    prefix="/v1/residential-areas",
     tags=["residential-areas"],
 )
 
