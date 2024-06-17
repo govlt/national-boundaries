@@ -1,10 +1,10 @@
-from typing import Any
-
 from fastapi import HTTPException, APIRouter, Depends
 from fastapi.params import Query
 from fastapi_filter import FilterDepends
+from fastapi_filter.base.filter import BaseFilterModel
 from fastapi_filter.contrib.sqlalchemy import Filter
 from fastapi_pagination import Page
+from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -24,9 +24,9 @@ _srid_query = Query(
 
 def create_boundaries_router(
         boundary_service: BoundaryService,
-        query_filter: Filter,
-        response_model: Any,
-        response_with_geometry_model: Any,
+        query_filter: type[BaseFilterModel],
+        response_model: type[BaseModel],
+        response_with_geometry_model: type[BaseModel],
         item_name: str,
         item_name_plural: str,
 ):
