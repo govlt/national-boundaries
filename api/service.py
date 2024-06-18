@@ -2,11 +2,12 @@ from typing import Optional, List, Callable, Type
 
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
-from geoalchemy2.functions import ST_Intersects, ST_Transform, ST_GeomFromText
+from geoalchemy2.functions import ST_Intersects, ST_Transform, ST_GeomFromText, ST_GeomFromEWKT
 from sqlalchemy import select, Select, func, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session, InstrumentedAttribute
 
+import database
 import models
 import schemas
 
@@ -78,19 +79,27 @@ class BoundaryService[S, G]:
             db: Session,
             sort_by: schemas.SearchSortBy,
             sort_order: schemas.SearchSortOrder,
-            wkt: Optional[str],
-            srid: int,
+            ewkt: Optional[str],
+            geojson: Optional[str],
             codes: Optional[List[str]],
             feature_ids: Optional[List[int]],
             name_contains=Optional[str],
             name_start=Optional[str]
     ) -> Page[Type[S]]:
         query = self.select_func(self.base_columns)
-        if wkt:
+        if ewkt:
             query = query.where(
                 ST_Intersects(
                     self.model_class.geom,
-                    ST_Transform(ST_GeomFromText(wkt, srid), 3346)
+                    ST_Transform(ST_GeomFromEWKT(ewkt), 3346)
+                )
+            )
+
+        if geojson:
+            query = query.where(
+                ST_Intersects(
+                    self.model_class.geom,
+                    ST_Transform(database.GeomFromGeoJSON(geojson), 3346)
                 )
             )
 

@@ -95,22 +95,6 @@ class HTTPExceptionResponse(BaseModel):
 
 
 class BoundariesSearchRequest(BaseModel):
-    srid: Optional[int] = Field(
-        default=3346,
-        examples=[4326],
-        description="Spatial reference identifier used for geometry filtering (default is 3346). "
-                    "For instance 3346 is LKS, 4326 is for World Geodetic System 1984 (WGS 84)",
-    )
-
-    wkt: Optional[str] = Field(
-        default=None,
-        description="Well-Known Text (WKT) for geometry filtering by intersect",
-        examples=[
-            "POLYGON ((25.277429 54.687233, 25.277429 54.680658, 25.289244 54.680658, 25.289244 54.687233, "
-            "25.277429 54.687233))"
-        ],
-    )
-
     codes: Optional[List[str]] = Field(
         default=None,
         description="Filter by codes",
@@ -140,5 +124,24 @@ class BoundariesSearchRequest(BaseModel):
         description="Filter by name starting with a string (case insensitive)",
         examples=[
             None
+        ],
+    )
+
+    ewkt: Optional[str] = Field(
+        default=None,
+        description="Well-Known Text (WKT) for geometry filtering by intersect",
+        examples=[
+            "SRID=4326;POLYGON((25.277429 54.687233, 25.277429 54.680658, 25.289244 54.680658, 25.289244 54.687233, "
+            "25.277429 54.687233))"
+        ],
+    )
+
+    geojson: Optional[str] = Field(
+        default=None,
+        description="GeoJson for geometry filtering by intersect",
+        examples=[
+            r'{"type":"Feature","crs":{"type":"name","properties":{"name":"urn:ogc:def:crs:EPSG::4326"}},"geometry":{'
+            r'"type":"Polygon","coordinates":[[[25.277429,54.687233],[25.277429,54.680658],[25.289244,54.680658],'
+            r'[25.289244,54.687233],[25.277429,54.687233]]]},"properties":{}}'
         ],
     )
