@@ -129,7 +129,7 @@ class BoundariesSearchRequest(BaseModel):
 
     ewkt: Optional[str] = Field(
         default=None,
-        description="Well-Known Text (WKT) for geometry filtering by intersect",
+        description="Extended Well-Known Text (EWKT) for geometry filtering by intersect",
         examples=[
             "SRID=4326;POLYGON((25.277429 54.687233, 25.277429 54.680658, 25.289244 54.680658, 25.289244 54.687233, "
             "25.277429 54.687233))"

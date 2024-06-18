@@ -26,7 +26,7 @@ def create_boundaries_router(
         response_model=Page[response_model],
         summary=f"Search for {item_name_plural} with pagination using various filters",
         description=f"Search for {item_name_plural} with pagination using various filters such as {item_name} codes, "
-                    f"feature IDs, name, WKT.",
+                    f"feature IDs, name. Additionally, you can filter by GeoJson, EWKT geometry intersects",
         response_description=f"A paginated list of {item_name_plural} matching the search criteria.",
         generate_unique_id_function=lambda route: f"{item_name_plural.replace(' ', '-')}-search"
     )
