@@ -19,10 +19,10 @@ if SENTRY_DSN := os.environ.get("SENTRY_DSN"):
     )
 
 app = FastAPI(
-    title="National boundaries API",
-    summary="API: National Boundaries of Lithuania",
+    title="National Boundaries API",
+    summary="Provides data about the national boundaries of Lithuania",
     version="0.0.1",
-    terms_of_service="http://example.com/terms/",
+    terms_of_service="https://www.registrucentras.lt/p/1187",
     docs_url="/",
     contact={
         "name": "Karolis Vyčius",
@@ -30,9 +30,9 @@ app = FastAPI(
         "email": "karolis@vycius.lt",
     },
     license_info={
-        "name": "MIT",
+        "name": "CC BY 4.0",
         "url": "https://github.com/govlt/national-boundaries",
-        "identifier": "MIT",
+        "identifier": "CC-BY-4.0",
     },
 )
 

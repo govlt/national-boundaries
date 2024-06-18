@@ -1,4 +1,4 @@
-from fastapi import HTTPException, APIRouter, Depends
+from fastapi import HTTPException, APIRouter, Depends, Path
 from fastapi.params import Query
 from fastapi_pagination import Page
 from pydantic import BaseModel
@@ -24,7 +24,8 @@ def create_boundaries_router(
     @router.post(
         "/search",
         response_model=Page[response_model],
-        summary=f"Paginated list of {item_name_plural}",
+        summary=f"Get a paginated list of {item_name_plural}",
+        description=f"Retrieve a paginated list of {item_name_plural}. You can search using various criteria.",
         generate_unique_id_function=lambda route: f"{item_name_plural.replace(' ', '-')}-search"
     )
     def boundaries_search(
@@ -44,14 +45,16 @@ def create_boundaries_router(
     @router.get(
         "/{code}",
         response_model=response_model,
-        summary=item_name.capitalize(),
+        summary=f"Get {item_name} by code",
         responses={
-            404: {"description": "Not found", "model": schemas.HTTPExceptionResponse},
+            404: {"description": f"{item_name} not found".capitalize(), "model": schemas.HTTPExceptionResponse},
         },
         generate_unique_id_function=lambda route: f"{item_name_plural.replace(' ', '-')}-get"
     )
-    def boundary_item(
-            code: str,
+    def get(
+            code: str = Path(
+                description=f"The code of the {item_name} to retrieve",
+            ),
             db: Session = Depends(database.get_db),
     ):
         if item := boundary_service.get_without_geometry(db=db, code=code):
@@ -65,20 +68,22 @@ def create_boundaries_router(
     @router.get(
         "/{code}/geometry",
         response_model=response_with_geometry_model,
-        summary=f"{item_name.capitalize()} with geometry",
+        summary=f"Get {item_name} with geometry by code",
         responses={
-            404: {"description": "Not found", "model": schemas.HTTPExceptionResponse},
+            404: {"description": f"{item_name} not found".capitalize(), "model": schemas.HTTPExceptionResponse},
         },
         generate_unique_id_function=lambda route: f"{item_name_plural.replace(' ', '-')}-get-with-geometry"
     )
-    def boundary_with_geometry(
-            code: str,
+    def get_with_geometry(
+            code: str = Path(
+                description=f"The code of the {item_name} to retrieve",
+            ),
             db: Session = Depends(database.get_db),
             srid: int = Query(
                 3346,
                 example=4326,
-                description="A spatial reference identifier (SRID) for geometry output."
-                            "For instance 3346 is LKS, 4326 is for World Geodetic System 1984 (WGS 84)",
+                description="A spatial reference identifier (SRID) for geometry output. "
+                            "For instance, 3346 is LKS, 4326 is for World Geodetic System 1984 (WGS 84)."
             ),
     ):
         if row := boundary_service.get_with_geometry(db=db, code=code, srid=srid):
@@ -107,7 +112,6 @@ health_check_router = APIRouter()
 )
 def get_health(db: Session = Depends(database.get_db)) -> schemas.HealthCheck:
     """
-    ## Perform a Health Check
     Endpoint to perform a healthcheck on. This endpoint can primarily be used Docker
     to ensure a robust container orchestration and management is in place. Other
     services which rely on proper functioning of the API service will not deploy if this
