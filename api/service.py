@@ -1,4 +1,4 @@
-from typing import Optional, List, Callable
+from typing import Optional, List, Callable, Type
 
 from fastapi_filter.contrib.sqlalchemy import Filter
 from fastapi_pagination import Page
@@ -32,6 +32,7 @@ _municipality_object = func.json_object(
 
 
 class BoundaryService[M, S, G]:
+    model_class: type(models.Base)
     base_columns: List[InstrumentedAttribute]
     code_column: InstrumentedAttribute
     geometry_column: InstrumentedAttribute
@@ -39,17 +40,19 @@ class BoundaryService[M, S, G]:
 
     def __init__(
             self,
+            model_class: type(models.Base),
             base_columns: List[InstrumentedAttribute],
             code_column: InstrumentedAttribute,
             geometry_column: InstrumentedAttribute,
             select_func: Callable[[List[InstrumentedAttribute]], Select],
     ):
+        self.model_class = model_class
         self.base_columns = base_columns
         self.code_column = code_column
         self.geometry_column = geometry_column
         self.select_func = select_func
 
-    def get_without_geometry(self, db: Session, code: str) -> Optional[S]:
+    def get_without_geometry(self, db: Session, code: str) -> Optional[Type[S]]:
         query = self.select_func(self.base_columns)
         query = query.filter(self.code_column == code)
 
@@ -60,7 +63,7 @@ class BoundaryService[M, S, G]:
             db: Session,
             code: str,
             srid: int,
-    ) -> Optional[G]:
+    ) -> Optional[Type[G]]:
         query = self.select_func(
             [
                 *self.base_columns,
@@ -72,8 +75,15 @@ class BoundaryService[M, S, G]:
         return db.execute(query).first()
 
     def search(
-            self, db: Session, wkt: Optional[str], srid: int, query_filter: Filter
-    ) -> Page[S]:
+            self,
+            db: Session,
+            wkt: Optional[str],
+            srid: int,
+            codes: Optional[List[str]],
+            feature_ids: Optional[List[int]],
+            name_contains=Optional[str],
+            name_start=Optional[str]
+    ) -> Page[Type[S]]:
         query = self.select_func(self.base_columns)
         if wkt:
             query = query.where(
@@ -83,12 +93,23 @@ class BoundaryService[M, S, G]:
                 )
             )
 
-        query = query_filter.filter(query)
-        query = query_filter.sort(query)
+        if feature_ids and len(feature_ids) > 0:
+            query = query.filter(self.model_class.feature_id.in_(feature_ids))
+
+        if codes and len(codes) > 0:
+            query = query.filter(self.model_class.code.in_(codes))
+
+        if name_contains:
+            query = query.filter(self.model_class.name.icontains(name_contains))
+
+        if name_start:
+            query = query.filter(self.model_class.name.istartswith(name_start))
+
         return paginate(db, query, unique=False)
 
 
 county_service = BoundaryService[models.Counties, schemas.County, schemas.CountyWithGeometry](
+    model_class=models.Counties,
     base_columns=[
         models.Counties.name,
         models.Counties.code,
@@ -103,6 +124,7 @@ county_service = BoundaryService[models.Counties, schemas.County, schemas.County
 municipalities_service = BoundaryService[
     models.Municipalities, schemas.Municipality, schemas.MunicipalityWithGeometry
 ](
+    model_class=models.Municipalities,
     base_columns=[
         models.Municipalities.name,
         models.Municipalities.code,
@@ -120,6 +142,7 @@ municipalities_service = BoundaryService[
 elderships_service = BoundaryService[
     models.Elderships, schemas.Eldership, schemas.EldershipWithGeometry
 ](
+    model_class=models.Elderships,
     base_columns=[
         models.Elderships.name,
         models.Elderships.code,
@@ -137,6 +160,7 @@ elderships_service = BoundaryService[
 residential_areas_service = BoundaryService[
     models.ResidentialAreas, schemas.ResidentialArea, schemas.ResidentialAreaWithGeometry
 ](
+    model_class=models.ResidentialAreas,
     base_columns=[
         models.ResidentialAreas.name,
         models.ResidentialAreas.code,

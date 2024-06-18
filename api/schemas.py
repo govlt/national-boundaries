@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel, Field
 
@@ -85,12 +85,51 @@ class HTTPExceptionResponse(BaseModel):
         }
 
 
-class GeometryFilterRequest(BaseModel):
+class BoundariesSearchRequest(BaseModel):
+    srid: Optional[int] = Field(
+        default=3346,
+        examples=[4326],
+        description="A spatial reference identifier (SRID) used for intersecting geometries"
+                    "For instance 3346 is LKS, 4326 is for World Geodetic System 1984 (WGS 84)",
+    )
+
     wkt: Optional[str] = Field(
         default=None,
         description="Filter by intersecting geometry by Well-Known text (WKT) ",
         examples=[
             "POLYGON ((25.277429 54.687233, 25.277429 54.680658, 25.289244 54.680658, 25.289244 54.687233, "
             "25.277429 54.687233))"
+        ],
+    )
+
+    codes: Optional[List[str]] = Field(
+        default=None,
+        description="Filter by codes",
+        examples=[
+            None
+        ],
+    )
+
+    feature_ids: Optional[List[int]] = Field(
+        default=None,
+        description="Filter by feature ids",
+        examples=[
+            None
+        ],
+    )
+
+    name_contains: Optional[str] = Field(
+        default=None,
+        description="Filter name contains (case insensitive)",
+        examples=[
+            None
+        ],
+    )
+
+    name_start: Optional[str] = Field(
+        default=None,
+        description="Filter name by start (case insensitive)",
+        examples=[
+            None
         ],
     )

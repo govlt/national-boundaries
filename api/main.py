@@ -40,42 +40,26 @@ app = FastAPI(
 models.Base.metadata.create_all(bind=engine)
 
 app.include_router(
-    router.create_boundaries_router(
-        boundary_service=service.county_service,
-        query_filter=filters.CountiesFilter,
-        response_model=schemas.County,
-        response_with_geometry_model=schemas.CountyWithGeometry,
-        item_name="county",
-        item_name_plural="counties"
-    ),
+    router.create_boundaries_router(boundary_service=service.county_service, response_model=schemas.County,
+                                    response_with_geometry_model=schemas.CountyWithGeometry, item_name="county",
+                                    item_name_plural="counties"),
     prefix="/v1/counties",
     tags=["counties"],
 )
 
 app.include_router(
-    router.create_boundaries_router(
-        boundary_service=service.municipalities_service,
-        query_filter=filters.MunicipalityFilter,
-        response_model=schemas.Municipality,
-        response_with_geometry_model=schemas.MunicipalityWithGeometry,
-        item_name="municipality",
-        item_name_plural="municipalities"
-
-    ),
+    router.create_boundaries_router(boundary_service=service.municipalities_service,
+                                    response_model=schemas.Municipality,
+                                    response_with_geometry_model=schemas.MunicipalityWithGeometry,
+                                    item_name="municipality", item_name_plural="municipalities"),
     prefix="/v1/municipalities",
     tags=["municipalities"],
 )
 
 app.include_router(
-    router.create_boundaries_router(
-        boundary_service=service.elderships_service,
-        query_filter=filters.EldershipsFilter,
-        response_model=schemas.Eldership,
-        response_with_geometry_model=schemas.EldershipWithGeometry,
-        item_name="eldership",
-        item_name_plural="elderships"
-
-    ),
+    router.create_boundaries_router(boundary_service=service.elderships_service, response_model=schemas.Eldership,
+                                    response_with_geometry_model=schemas.EldershipWithGeometry, item_name="eldership",
+                                    item_name_plural="elderships"),
     prefix="/v1/elderships",
     tags=["elderships"],
 )
@@ -83,13 +67,9 @@ app.include_router(
 app.include_router(
     router.create_boundaries_router(
         boundary_service=service.residential_areas_service,
-        query_filter=filters.ResidentialAreasFilter,
         response_model=schemas.ResidentialArea,
         response_with_geometry_model=schemas.ResidentialAreaWithGeometry,
-        item_name="residential area",
-        item_name_plural="residential areas"
-
-    ),
+        item_name="residential area", item_name_plural="residential areas"),
     prefix="/v1/residential-areas",
     tags=["residential-areas"],
 )

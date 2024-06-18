@@ -1,8 +1,6 @@
 from fastapi import HTTPException, APIRouter, Depends
 from fastapi.params import Query
-from fastapi_filter import FilterDepends
 from fastapi_filter.base.filter import BaseFilterModel
-from fastapi_filter.contrib.sqlalchemy import Filter
 from fastapi_pagination import Page
 from pydantic import BaseModel
 from sqlalchemy import text
@@ -24,23 +22,26 @@ _srid_query = Query(
 
 def create_boundaries_router(
         boundary_service: BoundaryService,
-        query_filter: type[BaseFilterModel],
         response_model: type[BaseModel],
         response_with_geometry_model: type[BaseModel],
         item_name: str,
-        item_name_plural: str,
+        item_name_plural: str
 ):
     router = APIRouter()
 
     @router.post("/search", response_model=Page[response_model], summary=f"Paginated list of {item_name_plural}")
     def boundaries_search(
-            request: schemas.GeometryFilterRequest,
+            request: schemas.BoundariesSearchRequest,
             db: Session = Depends(database.get_db),
-            boundaries_filter: Filter = FilterDepends(query_filter),
-            srid: int = _srid_query,
     ):
         return boundary_service.search(
-            db=db, wkt=request.wkt, srid=srid, query_filter=boundaries_filter
+            db=db,
+            wkt=request.wkt,
+            srid=request.srid,
+            codes=request.codes,
+            feature_ids=request.feature_ids,
+            name_contains=request.name_contains,
+            name_start=request.name_start,
         )
 
     @router.get(
