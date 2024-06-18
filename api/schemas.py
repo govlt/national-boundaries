@@ -140,8 +140,7 @@ class BoundariesSearchRequest(BaseModel):
         default=None,
         description="GeoJson for geometry filtering by intersect",
         examples=[
-            r'{"type":"Feature","crs":{"type":"name","properties":{"name":"urn:ogc:def:crs:EPSG::4326"}},"geometry":{'
-            r'"type":"Polygon","coordinates":[[[25.277429,54.687233],[25.277429,54.680658],[25.289244,54.680658],'
-            r'[25.289244,54.687233],[25.277429,54.687233]]]},"properties":{}}'
+            r'{"crs":{"type":"name","properties":{"name":"EPSG:4326"}},"type":"Polygon","coordinates":[[[25.277429,'
+            r'54.687233],[25.277429,54.680658],[25.289244,54.680658],[25.289244,54.687233],[25.277429,54.687233]]]}'
         ],
     )
