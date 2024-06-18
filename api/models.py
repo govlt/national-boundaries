@@ -5,8 +5,8 @@ from sqlalchemy.orm import relationship
 from database import Base
 
 
-class Counties(Base):
-    __tablename__ = "counties"
+class BaseBoundaries(Base):
+    __abstract__ = True
 
     feature_id = Column(Integer, primary_key=True)
     code = Column(String, nullable=False, index=True)
@@ -16,52 +16,32 @@ class Counties(Base):
         Geometry(geometry_type="POLYGON", srid=3346, nullable=False), nullable=False
     )
 
+
+class Counties(BaseBoundaries):
+    __tablename__ = "counties"
+
     municipalities = relationship("Municipalities", back_populates="county")
 
 
-class Municipalities(Base):
+class Municipalities(BaseBoundaries):
     __tablename__ = "municipalities"
 
-    feature_id = Column(Integer, primary_key=True)
-    code = Column(String, nullable=False, index=True)
-    name = Column(String, nullable=False)
-    area_ha = Column(Double, nullable=False)
     county_code = Column(String, ForeignKey("counties.code"))
     county = relationship("Counties", back_populates="municipalities")
 
     elderships = relationship("Elderships", back_populates="municipality")
     residential_areas = relationship("ResidentialAreas", back_populates="municipality")
 
-    geom = Column(
-        Geometry(geometry_type="POLYGON", srid=3346, nullable=False), nullable=False
-    )
 
-
-class Elderships(Base):
+class Elderships(BaseBoundaries):
     __tablename__ = "elderships"
 
-    feature_id = Column(Integer, primary_key=True)
-    code = Column(String, nullable=False, index=True)
-    name = Column(String, nullable=False)
-    area_ha = Column(Double, nullable=False)
     municipality_code = Column(String, ForeignKey("municipalities.code"))
     municipality = relationship("Municipalities", back_populates="elderships")
 
-    geom = Column(
-        Geometry(geometry_type="POLYGON", srid=3346, nullable=False), nullable=False
-    )
 
-
-class ResidentialAreas(Base):
+class ResidentialAreas(BaseBoundaries):
     __tablename__ = "residential_areas"
 
-    feature_id = Column(Integer, primary_key=True)
-    code = Column(String, nullable=False, index=True)
-    name = Column(String, nullable=False)
-    area_ha = Column(Double, nullable=False)
     municipality_code = Column(String, ForeignKey("municipalities.code"))
     municipality = relationship("Municipalities", back_populates="residential_areas")
-
-    geom = Column(
-        Geometry(geometry_type="POLYGON", srid=3346, nullable=False), nullable=False
-    )

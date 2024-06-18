@@ -1,6 +1,5 @@
-from typing import Optional, List, Callable, Type
+from typing import Optional, List, Callable, Type, TypeVar
 
-from fastapi_filter.contrib.sqlalchemy import Filter
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
 from geoalchemy2.functions import ST_Intersects, ST_Transform, ST_GeomFromText
@@ -31,30 +30,22 @@ _municipality_object = func.json_object(
 ).label("municipality")
 
 
-class BoundaryService[M, S, G]:
-    model_class: type(models.Base)
+class BoundaryService[S, G]:
+    model_class: type[models.BaseBoundaries]
     base_columns: List[InstrumentedAttribute]
-    code_column: InstrumentedAttribute
-    geometry_column: InstrumentedAttribute
     select_func: Callable[[List[InstrumentedAttribute]], Select]
 
-    def __init__(
-            self,
-            model_class: type(models.Base),
-            base_columns: List[InstrumentedAttribute],
-            code_column: InstrumentedAttribute,
-            geometry_column: InstrumentedAttribute,
-            select_func: Callable[[List[InstrumentedAttribute]], Select],
-    ):
+    def __init__(self,
+                 model_class: type[models.BaseBoundaries],
+                 base_columns: List[InstrumentedAttribute],
+                 select_func: Callable[[List[InstrumentedAttribute]], Select]):
         self.model_class = model_class
         self.base_columns = base_columns
-        self.code_column = code_column
-        self.geometry_column = geometry_column
         self.select_func = select_func
 
     def get_without_geometry(self, db: Session, code: str) -> Optional[Type[S]]:
         query = self.select_func(self.base_columns)
-        query = query.filter(self.code_column == code)
+        query = query.filter(self.model_class.code == code)
 
         return db.execute(query).first()
 
@@ -67,10 +58,10 @@ class BoundaryService[M, S, G]:
         query = self.select_func(
             [
                 *self.base_columns,
-                ST_Transform(self.geometry_column, srid).label("geometry"),
+                ST_Transform(self.model_class.geom, srid).label("geometry"),
             ]
         )
-        query = query.filter(self.code_column == code)
+        query = query.filter(self.model_class.code == code)
 
         return db.execute(query).first()
 
@@ -88,7 +79,7 @@ class BoundaryService[M, S, G]:
         if wkt:
             query = query.where(
                 ST_Intersects(
-                    self.geometry_column,
+                    self.model_class.geom,
                     ST_Transform(ST_GeomFromText(wkt, srid), 3346)
                 )
             )
@@ -108,7 +99,7 @@ class BoundaryService[M, S, G]:
         return paginate(db, query, unique=False)
 
 
-county_service = BoundaryService[models.Counties, schemas.County, schemas.CountyWithGeometry](
+county_service = BoundaryService[schemas.County, schemas.CountyWithGeometry](
     model_class=models.Counties,
     base_columns=[
         models.Counties.name,
@@ -116,14 +107,10 @@ county_service = BoundaryService[models.Counties, schemas.County, schemas.County
         models.Counties.feature_id,
         models.Counties.area_ha,
     ],
-    code_column=models.Counties.code,
-    geometry_column=models.Counties.geom,
     select_func=lambda columns: select(*columns).select_from(models.Counties),
 )
 
-municipalities_service = BoundaryService[
-    models.Municipalities, schemas.Municipality, schemas.MunicipalityWithGeometry
-](
+municipalities_service = BoundaryService[schemas.Municipality, schemas.MunicipalityWithGeometry](
     model_class=models.Municipalities,
     base_columns=[
         models.Municipalities.name,
@@ -132,16 +119,12 @@ municipalities_service = BoundaryService[
         models.Municipalities.area_ha,
         _county_object,
     ],
-    code_column=models.Municipalities.code,
-    geometry_column=models.Municipalities.geom,
     select_func=lambda columns: select(*columns).outerjoin_from(
         models.Municipalities, models.Municipalities.county
     ),
 )
 
-elderships_service = BoundaryService[
-    models.Elderships, schemas.Eldership, schemas.EldershipWithGeometry
-](
+elderships_service = BoundaryService[schemas.Eldership, schemas.EldershipWithGeometry](
     model_class=models.Elderships,
     base_columns=[
         models.Elderships.name,
@@ -150,16 +133,12 @@ elderships_service = BoundaryService[
         models.Elderships.area_ha,
         _municipality_object,
     ],
-    code_column=models.Elderships.code,
-    geometry_column=models.Elderships.geom,
     select_func=lambda columns: select(*columns).outerjoin_from(
         models.Elderships, models.Elderships.municipality
     ).outerjoin(models.Municipalities.county),
 )
 
-residential_areas_service = BoundaryService[
-    models.ResidentialAreas, schemas.ResidentialArea, schemas.ResidentialAreaWithGeometry
-](
+residential_areas_service = BoundaryService[schemas.ResidentialArea, schemas.ResidentialAreaWithGeometry](
     model_class=models.ResidentialAreas,
     base_columns=[
         models.ResidentialAreas.name,
@@ -168,8 +147,6 @@ residential_areas_service = BoundaryService[
         models.ResidentialAreas.area_ha,
         _municipality_object,
     ],
-    code_column=models.ResidentialAreas.code,
-    geometry_column=models.ResidentialAreas.geom,
     select_func=lambda columns: select(*columns).outerjoin_from(
         models.ResidentialAreas, models.ResidentialAreas.municipality
     ).outerjoin(models.Municipalities.county),
