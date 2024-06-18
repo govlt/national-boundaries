@@ -40,6 +40,7 @@ def create_boundaries_router(
             db=db,
             sort_by=sort_by,
             sort_order=sort_order,
+            ewkb=request.ewkb,
             ewkt=request.ewkt,
             geojson=request.geojson,
             codes=request.codes,

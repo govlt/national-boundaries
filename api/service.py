@@ -2,7 +2,7 @@ from typing import Optional, List, Callable, Type
 
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
-from geoalchemy2.functions import ST_Intersects, ST_Transform, ST_GeomFromText, ST_GeomFromEWKT
+from geoalchemy2.functions import ST_Intersects, ST_Transform, ST_GeomFromText, ST_GeomFromEWKT, ST_GeomFromEWKB
 from sqlalchemy import select, Select, func, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session, InstrumentedAttribute
@@ -29,6 +29,10 @@ _municipality_object = func.json_object(
     "county", _county_object,
     type_=JSONB,
 ).label("municipality")
+
+
+class GeomFromEWKB:
+    pass
 
 
 class BoundaryService[S, G]:
@@ -79,6 +83,7 @@ class BoundaryService[S, G]:
             db: Session,
             sort_by: schemas.SearchSortBy,
             sort_order: schemas.SearchSortOrder,
+            ewkb: Optional[str],
             ewkt: Optional[str],
             geojson: Optional[str],
             codes: Optional[List[str]],
@@ -87,6 +92,14 @@ class BoundaryService[S, G]:
             name_start=Optional[str]
     ) -> Page[Type[S]]:
         query = self.select_func(self.base_columns)
+        if ewkb:
+            query = query.where(
+                ST_Intersects(
+                    self.model_class.geom,
+                    ST_Transform(database.GeomFromEWKB(ewkb), 3346)
+                )
+            )
+
         if ewkt:
             query = query.where(
                 ST_Intersects(

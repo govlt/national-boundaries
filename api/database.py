@@ -37,3 +37,15 @@ class GeomFromGeoJSON(GenericFunction):
     """
 
     type = geoalchemy2.types.Geometry()
+
+
+class GeomFromEWKB(GenericFunction):
+    """
+    Returns geometric object given its EWKB Representation
+
+    see https://www.gaia-gis.it/gaia-sins/spatialite-sql-5.1.0.html
+
+    Return type: :class:`geoalchemy2.types.Geometry`.
+    """
+
+    type = geoalchemy2.types.Geometry()

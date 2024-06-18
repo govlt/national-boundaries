@@ -127,6 +127,15 @@ class BoundariesSearchRequest(BaseModel):
         ],
     )
 
+    ewkb: Optional[str] = Field(
+        default=None,
+        description="Extended Well-Known Binary (EWKB) represented as a hex string for geometry filtering by intersect",
+        examples=[
+            r"0103000020E6100000010000000500000045F6419605473940B1DD3D40F7574B4045F641960547394061E124CD1F57"
+            r"4B40719010E50B4A394061E124CD1F574B40719010E50B4A3940B1DD3D40F7574B4045F6419605473940B1DD3D40F7574B40"
+        ],
+    )
+
     ewkt: Optional[str] = Field(
         default=None,
         description="Extended Well-Known Text (EWKT) for geometry filtering by intersect",
