@@ -32,10 +32,14 @@ def create_boundaries_router(
     )
     def boundaries_search(
             request: schemas.BoundariesSearchRequest,
+            sort_by: schemas.SearchSortBy = Query(default=schemas.SearchSortBy.code),
+            sort_order: schemas.SearchSortOrder = Query(default=schemas.SearchSortOrder.asc),
             db: Session = Depends(database.get_db),
     ):
         return boundary_service.search(
             db=db,
+            sort_by=sort_by,
+            sort_order=sort_order,
             wkt=request.wkt,
             srid=request.srid,
             codes=request.codes,

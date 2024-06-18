@@ -76,6 +76,8 @@ class BoundaryService[S, G]:
     def search(
             self,
             db: Session,
+            sort_by: schemas.SearchSortBy,
+            sort_order: schemas.SearchSortOrder,
             wkt: Optional[str],
             srid: int,
             codes: Optional[List[str]],
@@ -103,6 +105,13 @@ class BoundaryService[S, G]:
 
         if name_start:
             query = query.filter(self.model_class.name.istartswith(name_start))
+
+        sort_by_field = getattr(self.model_class, sort_by)
+
+        if sort_order == schemas.SearchSortOrder.desc:
+            sort_by_field = sort_by_field.desc()
+
+        query = query.order_by(sort_by_field)
 
         return paginate(db, query, unique=False)
 

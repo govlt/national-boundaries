@@ -1,6 +1,19 @@
+import enum
 from typing import Optional, List
 
 from pydantic import BaseModel, Field
+
+
+class SearchSortBy(enum.StrEnum):
+    code = 'code'
+    name = 'name'
+    feature_id = 'feature_id'
+    area_ha = 'area_ha'
+
+
+class SearchSortOrder(str, enum.Enum):
+    asc = 'asc'
+    desc = 'desc'
 
 
 class Geometry(BaseModel):
