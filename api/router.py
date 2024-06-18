@@ -24,8 +24,10 @@ def create_boundaries_router(
     @router.post(
         "/search",
         response_model=Page[response_model],
-        summary=f"Get a paginated list of {item_name_plural}",
-        description=f"Retrieve a paginated list of {item_name_plural}. You can search using various criteria.",
+        summary=f"Search for {item_name_plural} with pagination using various filters",
+        description=f"Search for {item_name_plural} with pagination using various filters such as {item_name} codes, "
+                    f"feature IDs, name, WKT.",
+        response_description=f"A paginated list of {item_name_plural} matching the search criteria.",
         generate_unique_id_function=lambda route: f"{item_name_plural.replace(' ', '-')}-search"
     )
     def boundaries_search(
@@ -46,9 +48,11 @@ def create_boundaries_router(
         "/{code}",
         response_model=response_model,
         summary=f"Get {item_name} by code",
+        description=f"Retrieve a {item_name} by its unique code.",
         responses={
             404: {"description": f"{item_name} not found".capitalize(), "model": schemas.HTTPExceptionResponse},
         },
+        response_description=f"Details of the {item_name} with the specified code.",
         generate_unique_id_function=lambda route: f"{item_name_plural.replace(' ', '-')}-get"
     )
     def get(
@@ -69,9 +73,12 @@ def create_boundaries_router(
         "/{code}/geometry",
         response_model=response_with_geometry_model,
         summary=f"Get {item_name} with geometry by code",
+        description=f"Retrieve a {item_name} along with its geometry by its unique code. Optionally specify the SRID "
+                    f"for the geometry output.",
         responses={
             404: {"description": f"{item_name} not found".capitalize(), "model": schemas.HTTPExceptionResponse},
         },
+        response_description=f"Details of the {item_name} with the specified code, including its geometry.",
         generate_unique_id_function=lambda route: f"{item_name_plural.replace(' ', '-')}-get-with-geometry"
     )
     def get_with_geometry(
