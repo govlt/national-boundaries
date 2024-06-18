@@ -12,7 +12,7 @@ def _connect():
     return sqlite3.connect("file:boundaries.sqlite?immutable=1", uri=True)
 
 
-engine = create_engine("sqlite://", creator=_connect, echo=True, echo_pool=True)
+engine = create_engine("sqlite://", creator=_connect)
 session = sessionmaker(engine)
 Base = declarative_base()
 
