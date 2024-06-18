@@ -39,18 +39,27 @@ app = FastAPI(
 models.Base.metadata.create_all(bind=engine)
 
 app.include_router(
-    router.create_boundaries_router(boundary_service=service.county_service, response_model=schemas.County,
-                                    response_with_geometry_model=schemas.CountyWithGeometry, item_name="county",
-                                    item_name_plural="counties"),
+    router.create_boundaries_router(
+        boundary_service=service.county_service,
+        response_model=schemas.County,
+        response_with_geometry_model=schemas.CountyWithGeometry,
+        item_name="county",
+        item_name_plural="counties",
+        example_code="10"
+    ),
     prefix="/v1/counties",
     tags=["counties"],
 )
 
 app.include_router(
-    router.create_boundaries_router(boundary_service=service.municipalities_service,
-                                    response_model=schemas.Municipality,
-                                    response_with_geometry_model=schemas.MunicipalityWithGeometry,
-                                    item_name="municipality", item_name_plural="municipalities"),
+    router.create_boundaries_router(
+        boundary_service=service.municipalities_service,
+        response_model=schemas.Municipality,
+        response_with_geometry_model=schemas.MunicipalityWithGeometry,
+        item_name="municipality",
+        item_name_plural="municipalities",
+        example_code="13",
+    ),
     prefix="/v1/municipalities",
     tags=["municipalities"],
 )
@@ -61,7 +70,8 @@ app.include_router(
         response_model=schemas.Eldership,
         response_with_geometry_model=schemas.EldershipWithGeometry,
         item_name="eldership",
-        item_name_plural="elderships"
+        item_name_plural="elderships",
+        example_code="1306",
     ),
     prefix="/v1/elderships",
     tags=["elderships"],
@@ -72,7 +82,10 @@ app.include_router(
         boundary_service=service.residential_areas_service,
         response_model=schemas.ResidentialArea,
         response_with_geometry_model=schemas.ResidentialAreaWithGeometry,
-        item_name="residential area", item_name_plural="residential areas"),
+        item_name="residential area",
+        item_name_plural="residential areas",
+        example_code="31003"
+    ),
     prefix="/v1/residential-areas",
     tags=["residential-areas"],
 )

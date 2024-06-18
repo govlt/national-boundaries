@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import HTTPException, APIRouter, Depends, Path
 from fastapi.params import Query
 from fastapi_pagination import Page
@@ -17,7 +19,8 @@ def create_boundaries_router(
         response_model: type[BaseModel],
         response_with_geometry_model: type[BaseModel],
         item_name: str,
-        item_name_plural: str
+        item_name_plural: str,
+        example_code: str
 ):
     router = APIRouter()
 
@@ -63,6 +66,7 @@ def create_boundaries_router(
     def get(
             code: str = Path(
                 description=f"The code of the {item_name} to retrieve",
+                example=example_code
             ),
             db: Session = Depends(database.get_db),
     ):
@@ -89,6 +93,7 @@ def create_boundaries_router(
     def get_with_geometry(
             code: str = Path(
                 description=f"The code of the {item_name} to retrieve",
+                example=example_code
             ),
             db: Session = Depends(database.get_db),
             srid: int = Query(
