@@ -1,4 +1,4 @@
-from typing import Optional, List, Callable, Type, TypeVar
+from typing import Optional, List, Callable, Type
 
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
@@ -35,13 +35,21 @@ class BoundaryService[S, G]:
     base_columns: List[InstrumentedAttribute]
     select_func: Callable[[List[InstrumentedAttribute]], Select]
 
-    def __init__(self,
-                 model_class: type[models.BaseBoundaries],
-                 base_columns: List[InstrumentedAttribute],
-                 select_func: Callable[[List[InstrumentedAttribute]], Select]):
+    def __init__(
+            self,
+            model_class: type[models.BaseBoundaries],
+            additional_select_columns: List[InstrumentedAttribute],
+            select_func: Callable[[List[InstrumentedAttribute]], Select]
+    ):
         self.model_class = model_class
-        self.base_columns = base_columns
         self.select_func = select_func
+        self.base_columns = [
+            model_class.name,
+            model_class.code,
+            model_class.feature_id,
+            model_class.area_ha,
+            *additional_select_columns
+        ]
 
     def get_without_geometry(self, db: Session, code: str) -> Optional[Type[S]]:
         query = self.select_func(self.base_columns)
@@ -101,22 +109,13 @@ class BoundaryService[S, G]:
 
 county_service = BoundaryService[schemas.County, schemas.CountyWithGeometry](
     model_class=models.Counties,
-    base_columns=[
-        models.Counties.name,
-        models.Counties.code,
-        models.Counties.feature_id,
-        models.Counties.area_ha,
-    ],
+    additional_select_columns=[],
     select_func=lambda columns: select(*columns).select_from(models.Counties),
 )
 
 municipalities_service = BoundaryService[schemas.Municipality, schemas.MunicipalityWithGeometry](
     model_class=models.Municipalities,
-    base_columns=[
-        models.Municipalities.name,
-        models.Municipalities.code,
-        models.Municipalities.feature_id,
-        models.Municipalities.area_ha,
+    additional_select_columns=[
         _county_object,
     ],
     select_func=lambda columns: select(*columns).outerjoin_from(
@@ -126,11 +125,7 @@ municipalities_service = BoundaryService[schemas.Municipality, schemas.Municipal
 
 elderships_service = BoundaryService[schemas.Eldership, schemas.EldershipWithGeometry](
     model_class=models.Elderships,
-    base_columns=[
-        models.Elderships.name,
-        models.Elderships.code,
-        models.Elderships.feature_id,
-        models.Elderships.area_ha,
+    additional_select_columns=[
         _municipality_object,
     ],
     select_func=lambda columns: select(*columns).outerjoin_from(
@@ -140,11 +135,7 @@ elderships_service = BoundaryService[schemas.Eldership, schemas.EldershipWithGeo
 
 residential_areas_service = BoundaryService[schemas.ResidentialArea, schemas.ResidentialAreaWithGeometry](
     model_class=models.ResidentialAreas,
-    base_columns=[
-        models.ResidentialAreas.name,
-        models.ResidentialAreas.code,
-        models.ResidentialAreas.feature_id,
-        models.ResidentialAreas.area_ha,
+    additional_select_columns=[
         _municipality_object,
     ],
     select_func=lambda columns: select(*columns).outerjoin_from(

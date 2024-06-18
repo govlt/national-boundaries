@@ -5,7 +5,6 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi_pagination import add_pagination
 
-import filters
 import models
 import router
 import schemas
@@ -57,9 +56,13 @@ app.include_router(
 )
 
 app.include_router(
-    router.create_boundaries_router(boundary_service=service.elderships_service, response_model=schemas.Eldership,
-                                    response_with_geometry_model=schemas.EldershipWithGeometry, item_name="eldership",
-                                    item_name_plural="elderships"),
+    router.create_boundaries_router(
+        boundary_service=service.elderships_service,
+        response_model=schemas.Eldership,
+        response_with_geometry_model=schemas.EldershipWithGeometry,
+        item_name="eldership",
+        item_name_plural="elderships"
+    ),
     prefix="/v1/elderships",
     tags=["elderships"],
 )

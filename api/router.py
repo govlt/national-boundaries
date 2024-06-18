@@ -1,6 +1,5 @@
 from fastapi import HTTPException, APIRouter, Depends
 from fastapi.params import Query
-from fastapi_filter.base.filter import BaseFilterModel
 from fastapi_pagination import Page
 from pydantic import BaseModel
 from sqlalchemy import text
@@ -12,13 +11,6 @@ import database
 import schemas
 from service import BoundaryService
 
-_srid_query = Query(
-    3346,
-    example=4326,
-    description="A spatial reference identifier (SRID). "
-                "For instance 3346 is LKS, 4326 is for World Geodetic System 1984 (WGS 84)",
-)
-
 
 def create_boundaries_router(
         boundary_service: BoundaryService,
@@ -29,7 +21,12 @@ def create_boundaries_router(
 ):
     router = APIRouter()
 
-    @router.post("/search", response_model=Page[response_model], summary=f"Paginated list of {item_name_plural}")
+    @router.post(
+        "/search",
+        response_model=Page[response_model],
+        summary=f"Paginated list of {item_name_plural}",
+        generate_unique_id_function=lambda route: f"{item_name_plural.replace(' ', '-')}-search"
+    )
     def boundaries_search(
             request: schemas.BoundariesSearchRequest,
             db: Session = Depends(database.get_db),
@@ -51,6 +48,7 @@ def create_boundaries_router(
         responses={
             404: {"description": "Not found", "model": schemas.HTTPExceptionResponse},
         },
+        generate_unique_id_function=lambda route: f"{item_name_plural.replace(' ', '-')}-get"
     )
     def boundary_item(
             code: str,
@@ -71,11 +69,17 @@ def create_boundaries_router(
         responses={
             404: {"description": "Not found", "model": schemas.HTTPExceptionResponse},
         },
+        generate_unique_id_function=lambda route: f"{item_name_plural.replace(' ', '-')}-get-with-geometry"
     )
     def boundary_with_geometry(
             code: str,
             db: Session = Depends(database.get_db),
-            srid: int = _srid_query,
+            srid: int = Query(
+                3346,
+                example=4326,
+                description="A spatial reference identifier (SRID) for geometry output."
+                            "For instance 3346 is LKS, 4326 is for World Geodetic System 1984 (WGS 84)",
+            ),
     ):
         if row := boundary_service.get_with_geometry(db=db, code=code, srid=srid):
             return row
