@@ -147,26 +147,6 @@ typer = ">=0.12.3"
 standard = ["fastapi", "uvicorn[standard] (>=0.15.0)"]
 
 [[package]]
-name = "fastapi-filter"
-version = "2.0.0"
-description = "FastAPI filter"
-optional = false
-python-versions = "<4.0,>=3.9"
-files = [
-    {file = "fastapi_filter-2.0.0-py3-none-any.whl", hash = "sha256:14c2ae6819fa71e2db5b29f741fc1f829b14ccf12dce29630e7f87329e7e5cf9"},
-    {file = "fastapi_filter-2.0.0.tar.gz", hash = "sha256:84157d83c52eb16f41f9b8e5bd054d9c9df87b63e23b843f6dbd5c84492ca47e"},
-]
-
-[package.dependencies]
-fastapi = ">=0.100.0,<1.0"
-pydantic = ">=2.0.0,<3.0.0"
-
-[package.extras]
-all = ["SQLAlchemy (>=1.4.36,<2.1.0)", "mongoengine (>=0.24.1,<0.28.0)"]
-mongoengine = ["mongoengine (>=0.24.1,<0.28.0)"]
-sqlalchemy = ["SQLAlchemy (>=1.4.36,<2.1.0)"]
-
-[[package]]
 name = "fastapi-pagination"
 version = "0.12.25"
 description = "FastAPI pagination"
@@ -1140,13 +1120,13 @@ files = [
 
 [[package]]
 name = "urllib3"
-version = "2.2.1"
+version = "2.2.2"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "urllib3-2.2.1-py3-none-any.whl", hash = "sha256:450b20ec296a467077128bff42b73080516e71b56ff59a60a02bef2232c4fa9d"},
-    {file = "urllib3-2.2.1.tar.gz", hash = "sha256:d0570876c61ab9e520d776c38acbbb5b05a776d3f9ff98a5c8fd5162a444cf19"},
+    {file = "urllib3-2.2.2-py3-none-any.whl", hash = "sha256:a448b2f64d686155468037e1ace9f2d2199776e17f0a46610480d311f73e3472"},
+    {file = "urllib3-2.2.2.tar.gz", hash = "sha256:dd505485549a7a552833da5e6063639d0d177c04f23bc3864e41e5dc5f612168"},
 ]
 
 [package.extras]
@@ -1395,4 +1375,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "bcad4b2000bc7f764af9a6b045afa6254a4f9a99f030111e276f8dc7e8fa5f96"
+content-hash = "c00f36d0263de8f295a4bc190289fb9c5ce71fe8e4cefe860a8d956196f62909"
