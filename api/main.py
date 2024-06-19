@@ -107,7 +107,7 @@ def invalid_request_geometry_exception_handler(request, exc: service.InvalidRequ
                     InitErrorDetails(
                         type=PydanticCustomError(
                             "invalid_geometry",
-                            "Input should be a valid geometry",
+                            "Input should be a valid geometry with SRID (spatial reference identifier)",
                         ),
                         loc=("geometry", exc.field),
                         input=exc.value
