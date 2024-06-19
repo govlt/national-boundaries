@@ -3,20 +3,19 @@ import sqlean
 from geoalchemy2 import load_spatialite
 from geoalchemy2.functions import GenericFunction
 from sqlalchemy import create_engine
-from sqlalchemy.event import listen
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 
 
 def _connect():
     sqlean.extensions.enable("unicode")
-    return sqlean.connect("file:boundaries.sqlite?immutable=1", uri=True)
+    conn = sqlean.connect("file:boundaries.sqlite?immutable=1", uri=True)
+    load_spatialite(conn)
+    return conn
 
 
-engine = create_engine("sqlite://", creator=_connect)
+engine = create_engine("sqlite://", creator=_connect, echo=True, echo_pool=True)
 session = sessionmaker(engine)
 Base = declarative_base()
-
-listen(engine, "connect", load_spatialite)
 
 
 def get_db() -> Session:
