@@ -2,10 +2,11 @@ from typing import Optional, List, Callable, Type
 
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
-from geoalchemy2.functions import ST_Intersects, ST_Transform, ST_GeomFromText, ST_GeomFromEWKT, ST_GeomFromEWKB
+from geoalchemy2.functions import ST_Intersects, ST_Transform, ST_GeomFromEWKT
 from sqlalchemy import select, Select, func, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session, InstrumentedAttribute
+from sqlalchemy.sql import operators
 
 import database
 import models
@@ -128,7 +129,7 @@ class BoundaryService[S, G]:
         if name_start:
             query = query.filter(self.model_class.name.istartswith(name_start))
 
-        sort_by_field = getattr(self.model_class, sort_by)
+        sort_by_field = operators.collate(getattr(self.model_class, sort_by), "NOCASE")
 
         if sort_order == schemas.SearchSortOrder.desc:
             sort_by_field = sort_by_field.desc()
