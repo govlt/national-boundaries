@@ -1,6 +1,5 @@
-import sqlite3
-
 import geoalchemy2
+import sqlean
 from geoalchemy2 import load_spatialite
 from geoalchemy2.functions import GenericFunction
 from sqlalchemy import create_engine
@@ -9,7 +8,8 @@ from sqlalchemy.orm import declarative_base, sessionmaker, Session
 
 
 def _connect():
-    return sqlite3.connect("file:boundaries.sqlite?immutable=1", uri=True)
+    sqlean.extensions.enable("unicode")
+    return sqlean.connect("file:boundaries.sqlite?immutable=1", uri=True)
 
 
 engine = create_engine("sqlite://", creator=_connect)
