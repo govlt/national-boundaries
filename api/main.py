@@ -3,7 +3,10 @@ import os
 import sentry_sdk
 import uvicorn
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
 from fastapi_pagination import add_pagination
+from pydantic import ValidationError
+from pydantic_core import InitErrorDetails, PydanticCustomError
 
 import models
 import router
@@ -91,6 +94,28 @@ app.include_router(
 )
 
 app.include_router(router.health_check_router)
+
+
+@app.exception_handler(service.InvalidRequestGeometry)
+def invalid_request_geometry_exception_handler(request, exc: service.InvalidRequestGeometry):
+    raise RequestValidationError(
+        errors=(
+            ValidationError.from_exception_data(
+                "ValueError",
+                [
+                    InitErrorDetails(
+                        type=PydanticCustomError(
+                            "invalid_geometry",
+                            "Input should be a valid geometry",
+                        ),
+                        loc=("geometry", exc.field),
+                        input=exc.value
+                    )
+                ],
+            )
+        ).errors()
+    )
+
 
 add_pagination(app)
 

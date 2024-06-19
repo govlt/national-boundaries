@@ -2,12 +2,13 @@ from typing import Optional, List, Callable, Type
 
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
-from geoalchemy2.functions import ST_Intersects, ST_Transform, ST_GeomFromEWKT, ST_Contains
+from geoalchemy2.functions import ST_Intersects, ST_Transform, ST_GeomFromEWKT, ST_Contains, ST_IsValid
 from sqlalchemy import select, Select, func, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session, InstrumentedAttribute
 from sqlalchemy.sql import operators
 from sqlalchemy.sql.functions import GenericFunction
+from sqlean import OperationalError
 
 import database
 import models
@@ -31,6 +32,14 @@ _municipality_object = func.json_object(
     "county", _county_object,
     type_=JSONB,
 ).label("municipality")
+
+
+class InvalidRequestGeometry(Exception):
+    def __init__(self, message: str, field: str, value: str):
+        self.message = message
+        self.field = field
+        self.value = value
+        super().__init__(self.message)
 
 
 class GeomFromEWKB:
@@ -90,31 +99,64 @@ class BoundaryService[S, G]:
 
         return db.execute(query).first()
 
-    def _filter_by_geometry(self, query: Select, geometry_filter: schemas.GeometryFilter) -> Select:
-        filter_func = _get_filter_func(geometry_filter.method)
+    @staticmethod
+    def _is_valid_geometry(db: Session, geom: GenericFunction) -> bool:
+        try:
+            return db.execute(ST_IsValid(geom)).scalar() == 1
+        except OperationalError:
+            return False
+
+    def _filter_by_geometry(
+            self,
+            db: Session,
+            query: Select,
+            geom_value: str,
+            field: str,
+            filter_func_type: type(GenericFunction),
+            geom_from_func_type: type(GenericFunction),
+    ):
+        geom = ST_Transform(geom_from_func_type(geom_value), 3346)
+        if not self._is_valid_geometry(db, geom):
+            raise InvalidRequestGeometry(message="Invalid geometry", field=field, value=geom_value, )
+
+        return query.where(filter_func_type(geom, self.model_class.geom))
+
+    def _filter_by_geometry_filter(
+            self,
+            db: Session,
+            query: Select,
+            geometry_filter: schemas.GeometryFilter
+    ) -> Select:
+        filter_func_type = _get_filter_func(geometry_filter.method)
 
         if ewkb := geometry_filter.ewkb:
-            query = query.where(
-                filter_func(
-                    ST_Transform(database.GeomFromEWKB(ewkb), 3346),
-                    self.model_class.geom,
-                )
+            query = self._filter_by_geometry(
+                db=db,
+                query=query,
+                field="ewkb",
+                geom_value=ewkb,
+                filter_func_type=filter_func_type,
+                geom_from_func_type=database.GeomFromEWKB,
             )
 
         if ewkt := geometry_filter.ewkt:
-            query = query.where(
-                filter_func(
-                    ST_Transform(ST_GeomFromEWKT(ewkt), 3346),
-                    self.model_class.geom,
-                )
+            query = self._filter_by_geometry(
+                db=db,
+                query=query,
+                field="ewkt",
+                geom_value=ewkt,
+                filter_func_type=filter_func_type,
+                geom_from_func_type=ST_GeomFromEWKT,
             )
 
         if geojson := geometry_filter.geojson:
-            query = query.where(
-                filter_func(
-                    ST_Transform(database.GeomFromGeoJSON(geojson), 3346),
-                    self.model_class.geom,
-                )
+            query = self._filter_by_geometry(
+                db=db,
+                query=query,
+                field="geojson",
+                geom_value=geojson,
+                filter_func_type=filter_func_type,
+                geom_from_func_type=database.GeomFromGeoJSON,
             )
 
         return query
@@ -140,7 +182,7 @@ class BoundaryService[S, G]:
         query = self.select_func(self.base_columns)
 
         if geometry_filter:
-            query = self._filter_by_geometry(query, geometry_filter)
+            query = self._filter_by_geometry_filter(db, query, geometry_filter)
 
         if name_filter:
             query = self._filter_by_name(query, name_filter)

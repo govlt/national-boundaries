@@ -36,6 +36,7 @@ class GeomFromGeoJSON(GenericFunction):
     """
 
     type = geoalchemy2.types.Geometry()
+    inherit_cache = True
 
 
 class GeomFromEWKB(GenericFunction):
@@ -48,3 +49,4 @@ class GeomFromEWKB(GenericFunction):
     """
 
     type = geoalchemy2.types.Geometry()
+    inherit_cache = True
