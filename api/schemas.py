@@ -94,42 +94,40 @@ class HTTPExceptionResponse(BaseModel):
         }
 
 
-class BoundariesSearchRequest(BaseModel):
-    codes: Optional[List[str]] = Field(
-        default=None,
-        description="Filter by codes",
-        examples=[
-            None
-        ],
-    )
-
-    feature_ids: Optional[List[int]] = Field(
-        default=None,
-        description="Filter by feature IDs",
-        examples=[
-            None
-        ],
-    )
-
-    name_contains: Optional[str] = Field(
+class NameFilter(BaseModel):
+    contains: Optional[str] = Field(
         default=None,
         description="Filter by name containing a string (case insensitive)",
         examples=[
-            None
+            "vil"
         ],
     )
 
-    name_start: Optional[str] = Field(
+    starts: Optional[str] = Field(
         default=None,
         description="Filter by name starting with a string (case insensitive)",
         examples=[
-            None
+            "Vil"
         ],
     )
 
+
+class GeometryFilterMethod(enum.StrEnum):
+    intersects = 'intersects'
+    contains = 'contains'
+
+
+class GeometryFilter(BaseModel):
+    method: GeometryFilterMethod = Field(
+        default=GeometryFilterMethod.intersects,
+        description="Defines method used for filtering geometries:\n"
+                    "- **`intersects`**: filter geometries that intersects any portion of space with the specified "
+                    "geometry.\n"
+                    "- **`contains`**: filter geometries that are completely within the specified geometry."
+    )
     ewkb: Optional[str] = Field(
         default=None,
-        description="Extended Well-Known Binary (EWKB) represented as a hex string for geometry filtering by intersect",
+        description="Extended Well-Known Binary (EWKB) represented as a hex string for geometry filtering",
         examples=[
             r"0103000020E6100000010000000500000045F6419605473940B1DD3D40F7574B4045F641960547394061E124CD1F57"
             r"4B40719010E50B4A394061E124CD1F574B40719010E50B4A3940B1DD3D40F7574B4045F6419605473940B1DD3D40F7574B40"
@@ -138,7 +136,7 @@ class BoundariesSearchRequest(BaseModel):
 
     ewkt: Optional[str] = Field(
         default=None,
-        description="Extended Well-Known Text (EWKT) for geometry filtering by intersect",
+        description="Extended Well-Known Text (EWKT) for geometry filtering",
         examples=[
             "SRID=4326;POLYGON((25.277429 54.687233, 25.277429 54.680658, 25.289244 54.680658, 25.289244 54.687233, "
             "25.277429 54.687233))"
@@ -147,9 +145,37 @@ class BoundariesSearchRequest(BaseModel):
 
     geojson: Optional[str] = Field(
         default=None,
-        description="GeoJson for geometry filtering by intersect",
+        description="GeoJson for geometry filtering",
         examples=[
             r'{"crs":{"type":"name","properties":{"name":"EPSG:4326"}},"type":"Polygon","coordinates":[[[25.277429,'
             r'54.687233],[25.277429,54.680658],[25.289244,54.680658],[25.289244,54.687233],[25.277429,54.687233]]]}'
         ],
+    )
+
+
+class BoundariesSearchRequest(BaseModel):
+    codes: Optional[List[str]] = Field(
+        default=None,
+        description="Filter by codes",
+        examples=[
+            []
+        ],
+    )
+
+    feature_ids: Optional[List[int]] = Field(
+        default=None,
+        description="Filter by feature IDs",
+        examples=[
+            []
+        ],
+    )
+
+    name: Optional[NameFilter] = Field(
+        default=None,
+        description="Filter by name"
+    )
+
+    geometry: Optional[GeometryFilter] = Field(
+        default=None,
+        description="Filter by geometry",
     )

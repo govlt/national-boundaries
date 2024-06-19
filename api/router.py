@@ -29,7 +29,7 @@ def create_boundaries_router(
         response_model=Page[response_model],
         summary=f"Search for {item_name_plural} with pagination using various filters",
         description=f"Search for {item_name_plural} with pagination using various filters such as {item_name} codes, "
-                    f"feature IDs, name. Additionally, you can filter by GeoJson, EWKT geometry intersects",
+                    f"feature IDs, name. Additionally, you can filter by GeoJson, EWKT geometry",
         response_description=f"A paginated list of {item_name_plural} matching the search criteria.",
         generate_unique_id_function=lambda route: f"{item_name_plural.replace(' ', '-')}-search"
     )
@@ -43,13 +43,10 @@ def create_boundaries_router(
             db=db,
             sort_by=sort_by,
             sort_order=sort_order,
-            ewkb=request.ewkb,
-            ewkt=request.ewkt,
-            geojson=request.geojson,
+            geometry_filter=request.geometry,
+            name_filter=request.name,
             codes=request.codes,
             feature_ids=request.feature_ids,
-            name_contains=request.name_contains,
-            name_start=request.name_start,
         )
 
     @router.get(

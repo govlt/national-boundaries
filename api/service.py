@@ -2,11 +2,12 @@ from typing import Optional, List, Callable, Type
 
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
-from geoalchemy2.functions import ST_Intersects, ST_Transform, ST_GeomFromEWKT
+from geoalchemy2.functions import ST_Intersects, ST_Transform, ST_GeomFromEWKT, ST_Contains
 from sqlalchemy import select, Select, func, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session, InstrumentedAttribute
 from sqlalchemy.sql import operators
+from sqlalchemy.sql.functions import GenericFunction
 
 import database
 import models
@@ -34,6 +35,16 @@ _municipality_object = func.json_object(
 
 class GeomFromEWKB:
     pass
+
+
+def _get_filter_func(filter_method: schemas.GeometryFilterMethod) -> type(GenericFunction):
+    match filter_method:
+        case schemas.GeometryFilterMethod.intersects:
+            return ST_Intersects
+        case schemas.GeometryFilterMethod.contains:
+            return ST_Contains
+        case _:
+            raise ValueError(f"Unknown geometry filter method: {filter_method}")
 
 
 class BoundaryService[S, G]:
@@ -79,55 +90,66 @@ class BoundaryService[S, G]:
 
         return db.execute(query).first()
 
+    def _filter_by_geometry(self, query: Select, geometry_filter: schemas.GeometryFilter) -> Select:
+        filter_func = _get_filter_func(geometry_filter.method)
+
+        if ewkb := geometry_filter.ewkb:
+            query = query.where(
+                filter_func(
+                    ST_Transform(database.GeomFromEWKB(ewkb), 3346),
+                    self.model_class.geom,
+                )
+            )
+
+        if ewkt := geometry_filter.ewkt:
+            query = query.where(
+                filter_func(
+                    ST_Transform(ST_GeomFromEWKT(ewkt), 3346),
+                    self.model_class.geom,
+                )
+            )
+
+        if geojson := geometry_filter.geojson:
+            query = query.where(
+                filter_func(
+                    ST_Transform(database.GeomFromGeoJSON(geojson), 3346),
+                    self.model_class.geom,
+                )
+            )
+
+        return query
+
+    def _filter_by_name(self, query: Select, name_filter: schemas.NameFilter) -> Select:
+        if name_filter.contains:
+            query = query.filter(self.model_class.name.icontains(name_filter.contains))
+        if name_filter.starts:
+            query = query.filter(self.model_class.name.istartswith(name_filter.starts))
+
+        return query
+
     def search(
             self,
             db: Session,
             sort_by: schemas.SearchSortBy,
             sort_order: schemas.SearchSortOrder,
-            ewkb: Optional[str],
-            ewkt: Optional[str],
-            geojson: Optional[str],
+            geometry_filter: Optional[schemas.GeometryFilter],
+            name_filter: Optional[schemas.NameFilter],
             codes: Optional[List[str]],
             feature_ids: Optional[List[int]],
-            name_contains=Optional[str],
-            name_start=Optional[str]
     ) -> Page[Type[S]]:
         query = self.select_func(self.base_columns)
-        if ewkb:
-            query = query.where(
-                ST_Intersects(
-                    self.model_class.geom,
-                    ST_Transform(database.GeomFromEWKB(ewkb), 3346)
-                )
-            )
 
-        if ewkt:
-            query = query.where(
-                ST_Intersects(
-                    self.model_class.geom,
-                    ST_Transform(ST_GeomFromEWKT(ewkt), 3346)
-                )
-            )
+        if geometry_filter:
+            query = self._filter_by_geometry(query, geometry_filter)
 
-        if geojson:
-            query = query.where(
-                ST_Intersects(
-                    self.model_class.geom,
-                    ST_Transform(database.GeomFromGeoJSON(geojson), 3346)
-                )
-            )
+        if name_filter:
+            query = self._filter_by_name(query, name_filter)
 
         if feature_ids and len(feature_ids) > 0:
             query = query.filter(self.model_class.feature_id.in_(feature_ids))
 
         if codes and len(codes) > 0:
             query = query.filter(self.model_class.code.in_(codes))
-
-        if name_contains:
-            query = query.filter(self.model_class.name.icontains(name_contains))
-
-        if name_start:
-            query = query.filter(self.model_class.name.istartswith(name_start))
 
         sort_by_field = operators.collate(getattr(self.model_class, sort_by), "NOCASE")
 
