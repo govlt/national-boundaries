@@ -5,6 +5,12 @@
     },
     "municipalities": {
       "pmtiles": "/opt/data/municipalities.pmtiles"
+    },
+    "elderships": {
+      "pmtiles": "/opt/data/elderships.pmtiles"
+    },
+    "residentials": {
+      "pmtiles": "/opt/data/residentials.pmtiles"
     }
   }
 }

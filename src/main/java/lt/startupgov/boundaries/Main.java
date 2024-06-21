@@ -26,7 +26,7 @@ public class Main extends ForwardingProfile {
                     Source.COUNTIES,
                     "counties.pmtiles",
                     new Counties(),
-                    Path.of("data", "sources", "espg-4326", "counties.gpkg.zip"),
+                    Path.of("data", "sources", "counties-4326.gpkg.zip"),
                     "https://cdn.biip.lt/tiles/poc/gpkg/counties.gpkg.zip"
             ),
             new LayerConfiguration(
@@ -34,7 +34,7 @@ public class Main extends ForwardingProfile {
                     Source.MUNICIPALITIES,
                     "municipalities.pmtiles",
                     new Municipalities(),
-                    Path.of("data", "sources", "espg-4326", "municipalities.gpkg.zip"),
+                    Path.of("data", "sources", "municipalities-4326.gpkg.zip"),
                     "https://cdn.biip.lt/tiles/poc/gpkg/municipalities.gpkg.zip"
             ),
             new LayerConfiguration(
@@ -42,15 +42,15 @@ public class Main extends ForwardingProfile {
                     Source.ELDERSHIPS,
                     "elderships.pmtiles",
                     new Elderships(),
-                    Path.of("data", "sources", "espg-4326", "elderships.gpkg.zip"),
+                    Path.of("data", "sources", "elderships-4326.gpkg.zip"),
                     "https://cdn.biip.lt/tiles/poc/gpkg/elderships.gpkg.zip"
             ),
             new LayerConfiguration(
                     "Residential areas of Lithuania",
                     Source.RESIDENTIALS,
-                    "residentials.mbtiles",
+                    "residentials.pmtiles",
                     new Residentials(),
-                    Path.of("data", "sources", "espg-4326", "residentials.gpkg.zip"),
+                    Path.of("data", "sources", "residentials-4326.gpkg.zip"),
                     "https://cdn.biip.lt/tiles/poc/gpkg/residentials.gpkg.zip"
             ),
     };
