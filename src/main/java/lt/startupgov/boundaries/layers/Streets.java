@@ -18,9 +18,9 @@ public class Streets implements Layer {
                     .setId(fid)
                     .setAttrWithMinzoom("id", fid, 12)
                     .setAttrWithMinzoom("name", sf.getTag("GAT_PAV"), 12)
-                    .setAttrWithMinzoom("name_long", sf.getTag("GAT_PAV_PI"), 12)
+                    .setAttrWithMinzoom("long_name", sf.getTag("GAT_PAV_PI"), 12)
                     .setAttrWithMinzoom("code", sf.getTag("GAT_KODAS"), 12)
-                    .setAttrWithMinzoom("length", sf.getTag("GAT_ILGIS"), 12)
+                    .setAttrWithMinzoom("length_m", sf.getTag("GAT_ILGIS"), 12)
                     .setAttrWithMinzoom("residential_code", sf.getTag("GYV_KODAS"), 12);
         }
     }
