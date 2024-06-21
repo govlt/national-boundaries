@@ -11,6 +11,9 @@
     },
     "residentials": {
       "pmtiles": "/opt/data/residentials.pmtiles"
+    },
+    "streets": {
+      "pmtiles": "/opt/data/streets.pmtiles"
     }
   }
 }

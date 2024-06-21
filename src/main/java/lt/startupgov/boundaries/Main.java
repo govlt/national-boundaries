@@ -53,6 +53,14 @@ public class Main extends ForwardingProfile {
                     Path.of("data", "sources", "residentials-4326.gpkg.zip"),
                     "https://cdn.biip.lt/tiles/poc/gpkg/residentials.gpkg.zip"
             ),
+            new LayerConfiguration(
+                    "Streets of Lithuania",
+                    Source.STREETS,
+                    "streets.pmtiles",
+                    new Streets(),
+                    Path.of("data", "sources", "streets-4326.gpkg.zip"),
+                    "https://cdn.biip.lt/tiles/poc/gpkg/streets.gpkg.zip"
+            ),
     };
 
     public static void main(String[] args) throws Exception {
