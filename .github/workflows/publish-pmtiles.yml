@@ -123,6 +123,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_PAGES_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_PAGES_ACCOUNT_ID }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ startsWith(github.ref, 'refs/tags/') && 'production' ||  (github.head_ref || github.ref_name) }}
           projectName: national-boundaries
           directory: output
           wranglerVersion: '3'
