@@ -57,10 +57,10 @@ ogrinfo -sql "CREATE UNIQUE INDEX streets_code ON streets(code)" boundaries.sqli
 
 echo "Importing addresses data into SQLite"
 
-curl -f -o data-sources/addresses-information.csv https://www.registrucentras.lt/aduomenys/?byla=adr_stat_lr.csv
-calculate_md5 data-sources/addresses-information.csv >> data-sources/checksums.txt
+curl -f -o data-sources/addresses-information.psv https://www.registrucentras.lt/aduomenys/?byla=adr_stat_lr.csv
+calculate_md5 data-sources/addresses-information.psv >> data-sources/checksums.txt
 
-ogr2ogr -f GPKG data-sources/addresses.gpkg data-sources/addresses-information.csv -nln info
+ogr2ogr -f GPKG data-sources/addresses.gpkg data-sources/addresses-information.psv -nln info
 
 # The complete geojson data with all municipalities is updated only once a year. However,
 # when downloaded per municipality, it is updated every month. To ensure we have the latest data,
