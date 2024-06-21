@@ -30,9 +30,6 @@ jobs:
       - name: Transform to EPSG:4326 compliant with RFC 7946
         run: ogr2ogr -f GeoJSON output/espg-4326/municipalities.json -lco RFC7946=YES -t_srs EPSG:4326 adr_gra_savivaldybes.json
 
-      - name: Transform to FlatGeobuf with spatial index
-        run: ogr2ogr -f FlatGeobuf output/espg-4326/municipalities.fgb -lco SPATIAL_INDEX=YES output/espg-4326/municipalities.json
-
       - name: Transform to GeoPackage
         run: ogr2ogr -f GPKG output/espg-4326/municipalities.gpkg.zip output/espg-4326/municipalities.json
 
