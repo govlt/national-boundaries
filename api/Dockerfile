@@ -2,6 +2,8 @@
 FROM ghcr.io/osgeo/gdal:ubuntu-full-3.9.0 as database-builder
 WORKDIR /opt/database
 
+RUN apt-get update && apt-get install -y csvkit &&  rm -rf /var/lib/apt/lists/*
+
 COPY create-database.sh ./create-database.sh
 
 RUN sh create-database.sh
