@@ -16,7 +16,6 @@ public class Municipalities implements Layer {
                     .setMinPixelSizeAtAllZooms(0)
                     .setId(fid)
                     .setAttr("id", fid)
-                    .setAttr("hello", "hello")
                     .setAttr("area", sf.getTag("SAV_PLOTAS"))
                     .setAttr("code", sf.getTag("SAV_KODAS"))
                     .setAttr("county_code", sf.getTag("APS_KODAS"))
