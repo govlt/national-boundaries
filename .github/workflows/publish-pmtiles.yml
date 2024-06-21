@@ -111,6 +111,11 @@ jobs:
           path: output/pmtiles
           merge-multiple: true
 
+      # Cloudflare Pages only supports files up to 25 MiB in size
+      # Temporary delete this file
+      - name: Delete residentials.pmtiles
+        run: rm output/pmtiles/residentials.pmtiles
+
       - name: Publish to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         id: cloudflare
