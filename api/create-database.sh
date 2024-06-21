@@ -52,7 +52,7 @@ echo "Importing streets data into SQLite"
 curl -f -o data-sources/streets.json https://www.registrucentras.lt/aduomenys/?byla=adr_gra_gatves.json
 calculate_md5 data-sources/streets.json >> data-sources/checksums.txt
 ogr2ogr -append -f SQLite boundaries.sqlite data-sources/streets.json -lco FID=feature_id -lco GEOMETRY_NAME=geom \
-  -sql "SELECT FID AS feature_id, GAT_KODAS AS code, GAT_PAV as name, GAT_PAV_PI AS long_name, GAT_ILGIS as length_m, GYV_KODAS AS residential_code FROM streets"
+  -sql "SELECT FID AS feature_id, GAT_KODAS AS code, GAT_PAV as name, GAT_PAV_PI AS full_name, GAT_ILGIS as length_m, GYV_KODAS AS residential_area_code FROM streets"
 ogrinfo -sql "CREATE UNIQUE INDEX streets_code ON streets(code)" boundaries.sqlite
 
 echo "Importing addresses data into SQLite"
@@ -77,7 +77,7 @@ done
 
 echo "Finishing addresses data import into SQLite"
 ogr2ogr -append -f SQLite boundaries.sqlite data-sources/addresses.gpkg -nln addresses \
-  -sql "SELECT points.fid AS feature_id, points.geom, points.AOB_KODAS as code, info.sav_kodas AS municipality_code, points.gyv_kodas AS residential_code, points.gat_kodas AS street_code, info.nr AS plot_or_building_number, info.pasto_kodas AS postal_code, info.korpuso_nr AS building_block_number FROM points INNER JOIN info USING (AOB_KODAS) ORDER BY AOB_KODAS"
+  -sql "SELECT points.fid AS feature_id, points.geom, points.AOB_KODAS as code, info.sav_kodas AS municipality_code, points.gyv_kodas AS residential_area_code, points.gat_kodas AS street_code, info.nr AS plot_or_building_number, info.pasto_kodas AS postal_code, info.korpuso_nr AS building_block_number FROM points INNER JOIN info USING (AOB_KODAS) ORDER BY AOB_KODAS"
 ogrinfo -sql "CREATE UNIQUE INDEX addresses_code ON addresses(code)" boundaries.sqlite
 
 echo "Finalizing SQLite database"
