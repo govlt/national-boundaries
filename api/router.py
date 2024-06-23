@@ -20,7 +20,7 @@ def create_boundaries_router(
         response_with_geometry_model: type[BaseModel],
         item_name: str,
         item_name_plural: str,
-        example_code: str
+        example_code: int
 ):
     router = APIRouter()
 
@@ -61,7 +61,7 @@ def create_boundaries_router(
         generate_unique_id_function=lambda route: f"{item_name_plural.replace(' ', '-')}-get"
     )
     def get(
-            code: str = Path(
+            code: int = Path(
                 description=f"The code of the {item_name} to retrieve",
                 example=example_code
             ),
@@ -88,7 +88,7 @@ def create_boundaries_router(
         generate_unique_id_function=lambda route: f"{item_name_plural.replace(' ', '-')}-get-with-geometry"
     )
     def get_with_geometry(
-            code: str = Path(
+            code: int = Path(
                 description=f"The code of the {item_name} to retrieve",
                 example=example_code
             ),

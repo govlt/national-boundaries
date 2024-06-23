@@ -33,6 +33,15 @@ _municipality_object = func.json_object(
     type_=JSONB,
 ).label("municipality")
 
+_residential_area_object = func.json_object(
+    text("'code', residential_areas.code"),
+    text("'name', residential_areas.name"),
+    text("'feature_id', residential_areas.feature_id"),
+    text("'area_ha', residential_areas.area_ha"),
+    "municipality", _municipality_object,
+    type_=JSONB,
+).label("residential_area")
+
 
 class InvalidRequestGeometry(Exception):
     def __init__(self, message: str, field: str, value: str):
@@ -73,7 +82,6 @@ class BoundaryService[S, G]:
             model_class.name,
             model_class.code,
             model_class.feature_id,
-            model_class.area_ha,
             *additional_select_columns
         ]
 
@@ -205,13 +213,16 @@ class BoundaryService[S, G]:
 
 county_service = BoundaryService[schemas.County, schemas.CountyWithGeometry](
     model_class=models.Counties,
-    additional_select_columns=[],
+    additional_select_columns=[
+        models.Counties.area_ha,
+    ],
     select_func=lambda columns: select(*columns).select_from(models.Counties),
 )
 
 municipalities_service = BoundaryService[schemas.Municipality, schemas.MunicipalityWithGeometry](
     model_class=models.Municipalities,
     additional_select_columns=[
+        models.Municipalities.area_ha,
         _county_object,
     ],
     select_func=lambda columns: select(*columns).outerjoin_from(
@@ -222,6 +233,7 @@ municipalities_service = BoundaryService[schemas.Municipality, schemas.Municipal
 elderships_service = BoundaryService[schemas.Eldership, schemas.EldershipWithGeometry](
     model_class=models.Elderships,
     additional_select_columns=[
+        models.Elderships.area_ha,
         _municipality_object,
     ],
     select_func=lambda columns: select(*columns).outerjoin_from(
@@ -232,9 +244,22 @@ elderships_service = BoundaryService[schemas.Eldership, schemas.EldershipWithGeo
 residential_areas_service = BoundaryService[schemas.ResidentialArea, schemas.ResidentialAreaWithGeometry](
     model_class=models.ResidentialAreas,
     additional_select_columns=[
+        models.ResidentialAreas.area_ha,
         _municipality_object,
     ],
     select_func=lambda columns: select(*columns).outerjoin_from(
         models.ResidentialAreas, models.ResidentialAreas.municipality
     ).outerjoin(models.Municipalities.county),
+)
+
+streets_service = BoundaryService[schemas.Street, schemas.StreetWithGeometry](
+    model_class=models.Streets,
+    additional_select_columns=[
+        models.Streets.length_m,
+        models.Streets.full_name,
+        _residential_area_object,
+    ],
+    select_func=lambda columns: select(*columns).outerjoin_from(
+        models.Streets, models.Streets.residential_area
+    ).outerjoin(models.ResidentialAreas.municipality).outerjoin(models.Municipalities.county),
 )

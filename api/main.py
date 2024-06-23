@@ -49,7 +49,7 @@ app.include_router(
         response_with_geometry_model=schemas.CountyWithGeometry,
         item_name="county",
         item_name_plural="counties",
-        example_code="10"
+        example_code=10
     ),
     prefix="/v1/counties",
     tags=["counties"],
@@ -62,7 +62,7 @@ app.include_router(
         response_with_geometry_model=schemas.MunicipalityWithGeometry,
         item_name="municipality",
         item_name_plural="municipalities",
-        example_code="13",
+        example_code=13,
     ),
     prefix="/v1/municipalities",
     tags=["municipalities"],
@@ -75,7 +75,7 @@ app.include_router(
         response_with_geometry_model=schemas.EldershipWithGeometry,
         item_name="eldership",
         item_name_plural="elderships",
-        example_code="1306",
+        example_code=1306,
     ),
     prefix="/v1/elderships",
     tags=["elderships"],
@@ -88,10 +88,23 @@ app.include_router(
         response_with_geometry_model=schemas.ResidentialAreaWithGeometry,
         item_name="residential area",
         item_name_plural="residential areas",
-        example_code="31003"
+        example_code=31003
     ),
     prefix="/v1/residential-areas",
     tags=["residential-areas"],
+)
+
+app.include_router(
+    router.create_boundaries_router(
+        boundary_service=service.streets_service,
+        response_model=schemas.Street,
+        response_with_geometry_model=schemas.StreetWithGeometry,
+        item_name="street",
+        item_name_plural="streets",
+        example_code=1453778
+    ),
+    prefix="/v1/streets",
+    tags=["streets"],
 )
 
 app.include_router(router.health_check_router)

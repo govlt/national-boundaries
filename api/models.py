@@ -9,16 +9,16 @@ class BaseBoundaries(Base):
     __abstract__ = True
 
     feature_id = Column(Integer, primary_key=True)
-    code = Column(String, nullable=False, index=True)
+    code = Column(Integer, nullable=False, index=True)
     name = Column(String, nullable=False)
-    area_ha = Column(Double, nullable=False)
     geom = Column(
-        Geometry(geometry_type="POLYGON", srid=3346, nullable=False), nullable=False
+        Geometry(srid=3346, nullable=False), nullable=False
     )
 
 
 class Counties(BaseBoundaries):
     __tablename__ = "counties"
+    area_ha = Column(Double, nullable=False)
 
     municipalities = relationship("Municipalities", back_populates="county")
 
@@ -26,7 +26,9 @@ class Counties(BaseBoundaries):
 class Municipalities(BaseBoundaries):
     __tablename__ = "municipalities"
 
-    county_code = Column(String, ForeignKey("counties.code"))
+    area_ha = Column(Double, nullable=False)
+
+    county_code = Column(Integer, ForeignKey("counties.code"))
     county = relationship("Counties", back_populates="municipalities")
 
     elderships = relationship("Elderships", back_populates="municipality")
@@ -36,12 +38,25 @@ class Municipalities(BaseBoundaries):
 class Elderships(BaseBoundaries):
     __tablename__ = "elderships"
 
-    municipality_code = Column(String, ForeignKey("municipalities.code"))
+    area_ha = Column(Double, nullable=False)
+
+    municipality_code = Column(Integer, ForeignKey("municipalities.code"))
     municipality = relationship("Municipalities", back_populates="elderships")
 
 
 class ResidentialAreas(BaseBoundaries):
     __tablename__ = "residential_areas"
 
-    municipality_code = Column(String, ForeignKey("municipalities.code"))
+    area_ha = Column(Double, nullable=False)
+    municipality_code = Column(Integer, ForeignKey("municipalities.code"))
     municipality = relationship("Municipalities", back_populates="residential_areas")
+    streets = relationship("Streets", back_populates="residential_area")
+
+
+class Streets(BaseBoundaries):
+    __tablename__ = "streets"
+
+    length_m = Column(Double, nullable=False)
+    full_name = Column(String, nullable=False)
+    residential_area_code = Column(Integer, ForeignKey("residential_areas.code"))
+    residential_area = relationship("ResidentialAreas", back_populates="streets")

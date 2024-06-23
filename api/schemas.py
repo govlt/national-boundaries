@@ -22,7 +22,7 @@ class Geometry(BaseModel):
 
 
 class County(BaseModel):
-    code: str = Field(description="Unique code of the county")
+    code: int = Field(description="Unique code of the county")
     name: str = Field(description="Name of the county")
     feature_id: int = Field(description="Feature ID of the county")
     area_ha: float = Field(description="Area of the county in hectares")
@@ -36,7 +36,7 @@ class CountyWithGeometry(County):
 
 
 class Municipality(BaseModel):
-    code: str = Field(description="Unique code of the municipality")
+    code: int = Field(description="Unique code of the municipality")
     name: str = Field(description="Name of the municipality")
     feature_id: int = Field(description="Feature ID of the municipality")
     area_ha: float = Field(description="Area of the municipality in hectares")
@@ -51,7 +51,7 @@ class MunicipalityWithGeometry(Municipality):
 
 
 class Eldership(BaseModel):
-    code: str = Field(description="Unique code of the eldership")
+    code: int = Field(description="Unique code of the eldership")
     name: str = Field(description="Name of the eldership")
     feature_id: int = Field(description="Feature ID of the eldership")
     area_ha: float = Field(description="Area of the eldership in hectares")
@@ -66,7 +66,7 @@ class EldershipWithGeometry(Eldership):
 
 
 class ResidentialArea(BaseModel):
-    code: str = Field(description="Unique code of the residential area")
+    code: int = Field(description="Unique code of the residential area")
     name: str = Field(description="Name of the residential area")
     feature_id: int = Field(description="Feature ID of the residential area")
     area_ha: float = Field(description="Area of the residential area in hectares")
@@ -78,6 +78,22 @@ class ResidentialArea(BaseModel):
 
 class ResidentialAreaWithGeometry(Eldership):
     geometry: Geometry = Field(description="Geometry information of the residential area")
+
+
+class Street(BaseModel):
+    code: int = Field(description="Unique code of the street")
+    name: str = Field(description="Name of the street")
+    full_name: str = Field(description="The full name of the street, including its type")
+    feature_id: int = Field(description="Feature ID of the street")
+    length_m: float = Field(description="The total length of the street in meters")
+    residential_area: ResidentialArea = Field(description="Residential area information the street belongs to")
+
+    class Config:
+        from_attributes = True
+
+
+class StreetWithGeometry(Street):
+    geometry: Geometry = Field(description="Line geometry information of the street")
 
 
 class HealthCheck(BaseModel):
@@ -154,7 +170,7 @@ class GeometryFilter(BaseModel):
 
 
 class BoundariesSearchRequest(BaseModel):
-    codes: Optional[List[str]] = Field(
+    codes: Optional[List[int]] = Field(
         default=None,
         description="Filter by codes",
         examples=[
