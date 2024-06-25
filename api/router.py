@@ -1,8 +1,7 @@
-from typing import List
-
 from fastapi import HTTPException, APIRouter, Depends, Path
 from fastapi.params import Query
 from fastapi_pagination import Page
+from fastapi_pagination.ext.async_sqlalchemy import paginate
 from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
@@ -11,6 +10,7 @@ from starlette import status
 
 import database
 import schemas
+import service
 from service import BoundaryService
 
 
@@ -147,4 +147,86 @@ def get_health(db: Session = Depends(database.get_db)) -> schemas.HealthCheck:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Not healthy"
+        )
+
+
+addresses_router = APIRouter()
+
+
+@addresses_router.post(
+    "/search",
+    response_model=Page[schemas.Address],
+    summary=f"Search for address with pagination using various filters",
+    description=f"Search for addresses with pagination using various filters such as address codes, "
+                f"feature IDs, name. Additionally, you can filter by GeoJson, EWKT geometry",
+    response_description=f"A paginated list of addresses matching the search criteria.",
+    generate_unique_id_function=lambda _: "addresses-search"
+)
+def addresses_search(
+        request: schemas.BoundariesSearchRequest,
+        sort_by: schemas.SearchSortBy = Query(default=schemas.SearchSortBy.code),
+        sort_order: schemas.SearchSortOrder = Query(default=schemas.SearchSortOrder.asc),
+        db: Session = Depends(database.get_db),
+):
+    return service.AddressesService.search(
+        db,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        geometry_filter=request.geometry,
+        name_filter=request.name,
+        codes=request.codes,
+        feature_ids=request.feature_ids
+    )
+    # if geometry_filter:
+    #     query = self._filter_by_geometry_filter(db, query, geometry_filter)
+    #
+    # if name_filter:
+    #     query = self._filter_by_name(query, name_filter)
+    #
+    # if feature_ids and len(feature_ids) > 0:
+    #     query = query.filter(self.model_class.feature_id.in_(feature_ids))
+    #
+    # if codes and len(codes) > 0:
+    #     query = query.filter(self.model_class.code.in_(codes))
+    #
+    # sort_by_field = operators.collate(getattr(self.model_class, sort_by), "NOCASE")
+
+    # if sort_order == schemas.SearchSortOrder.desc:
+    #     sort_by_field = sort_by_field.desc()
+
+    # query = query.order_by(sort_by_field)
+
+    return paginate(db, query, unique=False)
+
+
+@addresses_router.get(
+    "/{code}",
+    response_model=schemas.Address,
+    summary=f"Get address by code",
+    description=f"Retrieve a address by its unique code.",
+    responses={
+        404: {"description": "Address not found", "model": schemas.HTTPExceptionResponse},
+    },
+    response_description=f"Details of the address with the specified code.",
+    generate_unique_id_function=lambda route: "addresses-get"
+)
+def get(
+        code: int = Path(
+            description=f"The code of the address to retrieve",
+            example=155218235
+        ),
+        srid: int = Query(
+            3346,
+            example=4326,
+            description="A spatial reference identifier (SRID) for geometry output. "
+                        "For instance, 3346 is LKS, 4326 is for World Geodetic System 1984 (WGS 84)."
+        ),
+        db: Session = Depends(database.get_db),
+):
+    if item := service.AddressesService.get(db=db, code=code, srid=srid):
+        return item
+    else:
+        raise HTTPException(
+            status_code=404,
+            detail="Not found",
         )

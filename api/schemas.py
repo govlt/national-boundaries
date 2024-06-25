@@ -92,6 +92,14 @@ class Street(BaseModel):
         from_attributes = True
 
 
+class Address(BaseModel):
+    code: int = Field(description="Unique code of the address")
+    plot_or_building_number: str = Field(description="Plot or building number of the address")
+    postal_code: str = Field(description="Plot or building number of the address")
+    building_block_number: Optional[str] = Field(description="Plot or building number of the address")
+    geometry: Geometry = Field(description="Point geometry information of the address")
+
+
 class StreetWithGeometry(Street):
     geometry: Geometry = Field(description="Line geometry information of the street")
 

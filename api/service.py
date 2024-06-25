@@ -3,7 +3,7 @@ from typing import Optional, List, Callable, Type
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
 from geoalchemy2.functions import ST_Intersects, ST_Transform, ST_GeomFromEWKT, ST_Contains, ST_IsValid
-from sqlalchemy import select, Select, func, text
+from sqlalchemy import select, Select, func, text, Row
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session, InstrumentedAttribute
 from sqlalchemy.sql import operators
@@ -263,3 +263,39 @@ streets_service = BoundaryService[schemas.Street, schemas.StreetWithGeometry](
         models.Streets, models.Streets.residential_area
     ).outerjoin(models.ResidentialAreas.municipality).outerjoin(models.Municipalities.county),
 )
+
+
+class AddressesService:
+    @staticmethod
+    def search(
+            db: Session,
+            sort_by: schemas.SearchSortBy,
+            sort_order: schemas.SearchSortOrder,
+            geometry_filter: Optional[schemas.GeometryFilter],
+            name_filter: Optional[schemas.NameFilter],
+            codes: Optional[List[str]],
+            feature_ids: Optional[List[int]],
+    ):
+        pass
+
+    @staticmethod
+    def get(
+            db: Session,
+            code: int,
+            srid: int,
+    ) -> Row | None:
+        query = (select([
+            models.Addresses.feature_id,
+            models.Addresses.code,
+            models.Addresses.plot_or_building_number,
+            models.Addresses.building_block_number,
+            models.Addresses.postal_code,
+            ST_Transform(models.Addresses.geom, srid).label("geometry"),
+        ]).outerjoin_from(models.Addresses, models.ResidentialAreas.addresses)
+                 .outerjoin(models.ResidentialAreas.addresses)
+                 .outerjoin(models.Streets.addresses)
+                 .outerjoin(models.Municipalities.addresses))
+
+        query = query.filter(models.Addresses.code == code)
+
+        return db.execute(query).first()

@@ -33,6 +33,7 @@ class Municipalities(BaseBoundaries):
 
     elderships = relationship("Elderships", back_populates="municipality")
     residential_areas = relationship("ResidentialAreas", back_populates="municipality")
+    addresses = relationship("Addresses", back_populates="municipality")
 
 
 class Elderships(BaseBoundaries):
@@ -51,6 +52,7 @@ class ResidentialAreas(BaseBoundaries):
     municipality_code = Column(Integer, ForeignKey("municipalities.code"))
     municipality = relationship("Municipalities", back_populates="residential_areas")
     streets = relationship("Streets", back_populates="residential_area")
+    addresses = relationship("Addresses", back_populates="residential_area")
 
 
 class Streets(BaseBoundaries):
@@ -60,3 +62,27 @@ class Streets(BaseBoundaries):
     full_name = Column(String, nullable=False)
     residential_area_code = Column(Integer, ForeignKey("residential_areas.code"))
     residential_area = relationship("ResidentialAreas", back_populates="streets")
+    addresses = relationship("Addresses", back_populates="street")
+
+
+class Addresses(Base):
+    __tablename__ = "addresses"
+
+    feature_id = Column(Integer, primary_key=True)
+    code = Column(Integer, nullable=False, index=True)
+
+    plot_or_building_number = Column(String, nullable=False)
+    postal_code = Column(String, nullable=False)
+    building_block_number = Column(String, nullable=False)
+    geom = Column(
+        Geometry(srid=3346, nullable=False), nullable=False
+    )
+
+    municipality_code = Column(Integer, ForeignKey("municipalities.code"))
+    municipality = relationship("Municipalities", back_populates="addresses")
+
+    street_code = Column(Integer, ForeignKey("streets.code"), nullable=True)
+    street = relationship("Streets", back_populates="addresses")
+
+    residential_area_code = Column(Integer, ForeignKey("residential_areas.code"), nullable=True)
+    residential_area = relationship("ResidentialAreas", back_populates="addresses")

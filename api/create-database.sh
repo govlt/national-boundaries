@@ -76,8 +76,8 @@ curl -sf "https://www.registrucentras.lt/aduomenys/?byla=adr_savivaldybes.csv" |
 done
 
 echo "Finishing addresses data import into SQLite"
-ogr2ogr -append -f SQLite boundaries.sqlite data-sources/addresses.gpkg -nln addresses \
-  -sql "SELECT points.fid AS feature_id, points.geom, points.AOB_KODAS as code, info.sav_kodas AS municipality_code, points.gyv_kodas AS residential_area_code, points.gat_kodas AS street_code, info.nr AS plot_or_building_number, info.pasto_kodas AS postal_code, info.korpuso_nr AS building_block_number FROM points INNER JOIN info USING (AOB_KODAS) ORDER BY AOB_KODAS"
+ogr2ogr -append -f SQLite boundaries.sqlite data-sources/addresses.gpkg -lco FID=feature_id -nln addresses \
+  -sql "SELECT points.fid AS feature_id, points.geom, points.AOB_KODAS as code, CAST(info.sav_kodas AS integer(8)) AS municipality_code, points.gyv_kodas AS residential_area_code, points.gat_kodas AS street_code, info.nr AS plot_or_building_number, info.pasto_kodas AS postal_code, info.korpuso_nr AS building_block_number FROM points INNER JOIN info USING (AOB_KODAS) ORDER BY AOB_KODAS"
 ogrinfo -sql "CREATE UNIQUE INDEX addresses_code ON addresses(code)" boundaries.sqlite
 
 echo "Finalizing SQLite database"
