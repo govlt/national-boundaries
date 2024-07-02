@@ -65,7 +65,7 @@ class EldershipWithGeometry(Eldership):
     geometry: Geometry = Field(description="Geometry information of the eldership")
 
 
-class ResidentialAreaFlat(BaseModel):
+class FlatResidentialArea(BaseModel):
     code: int = Field(description="Unique code of the residential area")
     name: str = Field(description="Name of the residential area")
     feature_id: int = Field(description="Feature ID of the residential area")
@@ -75,7 +75,7 @@ class ResidentialAreaFlat(BaseModel):
         from_attributes = True
 
 
-class ResidentialArea(ResidentialAreaFlat):
+class ResidentialArea(FlatResidentialArea):
     municipality: Municipality = Field(description="Municipality information the residential area belongs to")
 
 
@@ -109,11 +109,11 @@ class Address(BaseModel):
     code: int = Field(description="Unique code of the address")
     plot_or_building_number: str = Field(description="Plot or building number of the address")
     postal_code: str = Field(description="Plot or building number of the address")
-    building_block_number: Optional[str] = Field(description="Plot or building number of the address")
+    building_block_number: Optional[str] = Field(description="Plot or building number of the address", min_length=1)
     geometry: Geometry = Field(description="Point geometry information of the address")
 
     street: Optional[FlatStreet] = Field(description="Street information the address belongs to")
-    residential_area: Optional[ResidentialAreaFlat] = Field(
+    residential_area: Optional[FlatResidentialArea] = Field(
         description="Residential area information the address belongs to",
     )
     municipality: Municipality = Field(description="Municipality information the address belongs to")
