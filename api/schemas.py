@@ -65,31 +65,44 @@ class EldershipWithGeometry(Eldership):
     geometry: Geometry = Field(description="Geometry information of the eldership")
 
 
-class ResidentialArea(BaseModel):
+class ResidentialAreaFlat(BaseModel):
     code: int = Field(description="Unique code of the residential area")
     name: str = Field(description="Name of the residential area")
     feature_id: int = Field(description="Feature ID of the residential area")
     area_ha: float = Field(description="Area of the residential area in hectares")
-    municipality: Municipality = Field(description="Municipality information the residential area belongs to")
 
     class Config:
         from_attributes = True
 
 
-class ResidentialAreaWithGeometry(Eldership):
+class ResidentialArea(ResidentialAreaFlat):
+    municipality: Municipality = Field(description="Municipality information the residential area belongs to")
+
+
+class ResidentialAreaWithGeometry(ResidentialArea):
     geometry: Geometry = Field(description="Geometry information of the residential area")
 
 
-class Street(BaseModel):
+class FlatStreet(BaseModel):
     code: int = Field(description="Unique code of the street")
     name: str = Field(description="Name of the street")
     full_name: str = Field(description="The full name of the street, including its type")
     feature_id: int = Field(description="Feature ID of the street")
     length_m: float = Field(description="The total length of the street in meters")
+
+    class Config:
+        from_attributes = True
+
+
+class Street(FlatStreet):
     residential_area: ResidentialArea = Field(description="Residential area information the street belongs to")
 
     class Config:
         from_attributes = True
+
+
+class StreetWithGeometry(Street):
+    geometry: Geometry = Field(description="Line geometry information of the street")
 
 
 class Address(BaseModel):
@@ -99,9 +112,11 @@ class Address(BaseModel):
     building_block_number: Optional[str] = Field(description="Plot or building number of the address")
     geometry: Geometry = Field(description="Point geometry information of the address")
 
-
-class StreetWithGeometry(Street):
-    geometry: Geometry = Field(description="Line geometry information of the street")
+    street: Optional[FlatStreet] = Field(description="Street information the address belongs to")
+    residential_area: Optional[ResidentialAreaFlat] = Field(
+        description="Residential area information the address belongs to",
+    )
+    municipality: Municipality = Field(description="Municipality information the address belongs to")
 
 
 class HealthCheck(BaseModel):

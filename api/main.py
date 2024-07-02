@@ -106,12 +106,12 @@ app.include_router(
     prefix="/v1/streets",
     tags=["streets"],
 )
-#
-# app.include_router(
-#     router.addresses_router,
-#     prefix="/v1/addresses",
-#     tags=["addresses"],
-# )
+
+app.include_router(
+    router.addresses_router,
+    prefix="/v1/addresses",
+    tags=["addresses"],
+)
 
 app.include_router(router.health_check_router)
 

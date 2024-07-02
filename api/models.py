@@ -81,8 +81,8 @@ class Addresses(Base):
     municipality_code = Column(Integer, ForeignKey("municipalities.code"))
     municipality = relationship("Municipalities", back_populates="addresses")
 
-    street_code = Column(Integer, ForeignKey("streets.code"), nullable=True)
-    street = relationship("Streets", back_populates="addresses")
-
     residential_area_code = Column(Integer, ForeignKey("residential_areas.code"), nullable=True)
     residential_area = relationship("ResidentialAreas", back_populates="addresses")
+
+    street_code = Column(Integer, ForeignKey("streets.code"), nullable=True)
+    street = relationship("Streets", back_populates="addresses")

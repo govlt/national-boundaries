@@ -33,6 +33,14 @@ _municipality_object = func.json_object(
     type_=JSONB,
 ).label("municipality")
 
+_flat_residential_area_object = func.json_object(
+    text("'code', residential_areas.code"),
+    text("'name', residential_areas.name"),
+    text("'feature_id', residential_areas.feature_id"),
+    text("'area_ha', residential_areas.area_ha"),
+    type_=JSONB,
+).label("residential_area")
+
 _residential_area_object = func.json_object(
     text("'code', residential_areas.code"),
     text("'name', residential_areas.name"),
@@ -41,6 +49,15 @@ _residential_area_object = func.json_object(
     "municipality", _municipality_object,
     type_=JSONB,
 ).label("residential_area")
+
+_flat_street_object = func.json_object(
+    text("'code', streets.code"),
+    text("'name', streets.name"),
+    text("'full_name', streets.full_name"),
+    text("'feature_id', streets.feature_id"),
+    text("'length_m', streets.length_m"),
+    type_=JSONB,
+).label("street")
 
 
 class InvalidRequestGeometry(Exception):
@@ -275,8 +292,36 @@ class AddressesService:
             name_filter: Optional[schemas.NameFilter],
             codes: Optional[List[str]],
             feature_ids: Optional[List[int]],
+            srid: int,
     ):
-        pass
+        # query = (select([
+        #     models.Addresses.feature_id,
+        #     models.Addresses.code,
+        #     models.Addresses.plot_or_building_number,
+        #     models.Addresses.building_block_number,
+        #     models.Addresses.postal_code,
+        # ]).outerjoin_from(models.Addresses, models.ResidentialAreas.addresses))
+
+        # query = query.order_by(models.Addresses.code.asc())
+
+        query = (select(
+            models.Addresses.feature_id,
+            models.Addresses.code,
+            models.Addresses.plot_or_building_number,
+            models.Addresses.building_block_number,
+            models.Addresses.postal_code,
+            ST_Transform(models.Addresses.geom, srid).label("geometry"),
+            _flat_residential_area_object,
+            _municipality_object,
+            _flat_street_object,
+        ).select_from(models.Addresses)
+                 .outerjoin(models.Addresses.municipality)
+                 .outerjoin(models.Municipalities.county)
+                 .outerjoin(models.Addresses.street)
+                 .outerjoin(models.Addresses.residential_area)
+                 .order_by(models.Addresses.code.asc()))
+
+        return paginate(db, query, unique=False)
 
     @staticmethod
     def get(

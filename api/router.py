@@ -166,6 +166,12 @@ def addresses_search(
         request: schemas.BoundariesSearchRequest,
         sort_by: schemas.SearchSortBy = Query(default=schemas.SearchSortBy.code),
         sort_order: schemas.SearchSortOrder = Query(default=schemas.SearchSortOrder.asc),
+        srid: int = Query(
+            3346,
+            example=4326,
+            description="A spatial reference identifier (SRID) for geometry output. "
+                        "For instance, 3346 is LKS, 4326 is for World Geodetic System 1984 (WGS 84)."
+        ),
         db: Session = Depends(database.get_db),
 ):
     return service.AddressesService.search(
@@ -175,7 +181,8 @@ def addresses_search(
         geometry_filter=request.geometry,
         name_filter=request.name,
         codes=request.codes,
-        feature_ids=request.feature_ids
+        feature_ids=request.feature_ids,
+        srid=srid,
     )
     # if geometry_filter:
     #     query = self._filter_by_geometry_filter(db, query, geometry_filter)
@@ -195,8 +202,6 @@ def addresses_search(
     #     sort_by_field = sort_by_field.desc()
 
     # query = query.order_by(sort_by_field)
-
-    return paginate(db, query, unique=False)
 
 
 @addresses_router.get(
