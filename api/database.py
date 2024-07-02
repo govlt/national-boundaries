@@ -8,7 +8,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker, Session
 
 def _connect():
     sqlean.extensions.enable("unicode")
-    conn = sqlean.connect("file:boundaries.sqlite?immutable=1", uri=True)
+    conn = sqlean.connect("file:boundaries.sqlite?immutable=1", uri=True, check_same_thread=False)
     load_spatialite(conn)
     return conn
 
