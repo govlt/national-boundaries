@@ -2,7 +2,7 @@ from typing import Optional, List, Callable, Type
 
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
-from geoalchemy2.functions import ST_Intersects, ST_Transform, ST_GeomFromEWKT, ST_Contains, ST_IsValid
+from geoalchemy2.functions import ST_Intersects, ST_Transform, ST_GeomFromEWKT, ST_Contains, ST_IsValid, ST_X, ST_Y
 from sqlalchemy import select, Select, func, text, Row
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session, InstrumentedAttribute
@@ -283,6 +283,32 @@ streets_service = BoundaryService[schemas.Street, schemas.StreetWithGeometry](
 
 
 class AddressesService:
+
+    @staticmethod
+    def _select_addresses(srid: int):
+        query = (select(
+            models.Addresses.feature_id,
+            models.Addresses.code,
+            models.Addresses.plot_or_building_number,
+            models.Addresses.building_block_number,
+            models.Addresses.postal_code,
+            _flat_residential_area_object,
+            _municipality_object,
+            _flat_street_object,
+            func.json_object(
+                "longitude", ST_Y(ST_Transform(models.Addresses.geom, srid)),
+                "latitude", ST_X(ST_Transform(models.Addresses.geom, srid)),
+                type_=JSONB,
+            ).label("location"),
+        ).select_from(models.Addresses)
+                 .outerjoin(models.Addresses.municipality)
+                 .outerjoin(models.Municipalities.county)
+                 .outerjoin(models.Addresses.street)
+                 .outerjoin(models.Addresses.residential_area)
+                 .order_by(models.Addresses.code.asc()))
+
+        return query
+
     @staticmethod
     def search(
             db: Session,
@@ -294,33 +320,7 @@ class AddressesService:
             feature_ids: Optional[List[int]],
             srid: int,
     ):
-        # query = (select([
-        #     models.Addresses.feature_id,
-        #     models.Addresses.code,
-        #     models.Addresses.plot_or_building_number,
-        #     models.Addresses.building_block_number,
-        #     models.Addresses.postal_code,
-        # ]).outerjoin_from(models.Addresses, models.ResidentialAreas.addresses))
-
-        # query = query.order_by(models.Addresses.code.asc())
-
-        query = (select(
-            models.Addresses.feature_id,
-            models.Addresses.code,
-            models.Addresses.plot_or_building_number,
-            models.Addresses.building_block_number,
-            models.Addresses.postal_code,
-            ST_Transform(models.Addresses.geom, srid).label("geometry"),
-            _flat_residential_area_object,
-            _municipality_object,
-            _flat_street_object,
-        ).select_from(models.Addresses)
-                 .outerjoin(models.Addresses.municipality)
-                 .outerjoin(models.Municipalities.county)
-                 .outerjoin(models.Addresses.street)
-                 .outerjoin(models.Addresses.residential_area)
-                 .order_by(models.Addresses.code.asc()))
-
+        query = AddressesService._select_addresses(srid=srid)
         return paginate(db, query, unique=False)
 
     @staticmethod
@@ -329,18 +329,7 @@ class AddressesService:
             code: int,
             srid: int,
     ) -> Row | None:
-        query = (select([
-            models.Addresses.feature_id,
-            models.Addresses.code,
-            models.Addresses.plot_or_building_number,
-            models.Addresses.building_block_number,
-            models.Addresses.postal_code,
-            ST_Transform(models.Addresses.geom, srid).label("geometry"),
-        ]).outerjoin_from(models.Addresses, models.ResidentialAreas.addresses)
-                 .outerjoin(models.ResidentialAreas.addresses)
-                 .outerjoin(models.Streets.addresses)
-                 .outerjoin(models.Municipalities.addresses))
-
+        query = AddressesService._select_addresses(srid=srid)
         query = query.filter(models.Addresses.code == code)
 
         return db.execute(query).first()
