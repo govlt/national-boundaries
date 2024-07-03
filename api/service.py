@@ -113,25 +113,12 @@ class BoundaryService[S, G]:
             db: Session,
             sort_by: schemas.SearchSortBy,
             sort_order: schemas.SearchSortOrder,
-            geometry_filter: Optional[schemas.GeometryFilter],
-            name_filter: Optional[schemas.StringFilter],
-            codes: Optional[List[str]],
-            feature_ids: Optional[List[int]],
+            request: schemas.AddressesSearchRequest,
+            base_filter: filters.BaseFilter,
     ) -> Page[Type[S]]:
         query = self.select_func(self.base_columns)
 
-        if geometry_filter:
-            query = filters.apply_geometry_filter(geometry_filter=geometry_filter, db=db, query=query,
-                                                  geom_field=self.model_class.geom)
-
-        if name_filter:
-            query = self._filter_by_name(query, name_filter)
-
-        if feature_ids and len(feature_ids) > 0:
-            query = query.filter(self.model_class.feature_id.in_(feature_ids))
-
-        if codes and len(codes) > 0:
-            query = query.filter(self.model_class.code.in_(codes))
+        query = base_filter.apply(request=request, db=db, query=query)
 
         sort_by_field = operators.collate(getattr(self.model_class, sort_by), "NOCASE")
 

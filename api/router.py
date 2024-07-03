@@ -17,6 +17,8 @@ from service import BoundaryService
 
 def create_boundaries_router(
         boundary_service: BoundaryService,
+        filter_class: type[filters.BaseFilter],
+        requestModel: type[schemas.BaseSearchRequest],
         response_model: type[BaseModel],
         response_with_geometry_model: type[BaseModel],
         item_name: str,
@@ -35,19 +37,18 @@ def create_boundaries_router(
         generate_unique_id_function=lambda route: f"{item_name_plural.replace(' ', '-')}-search"
     )
     def boundaries_search(
-            request: schemas.BoundariesSearchRequest,
+            request: requestModel,
             sort_by: schemas.SearchSortBy = Query(default=schemas.SearchSortBy.code),
             sort_order: schemas.SearchSortOrder = Query(default=schemas.SearchSortOrder.asc),
             db: Session = Depends(database.get_db),
+            boundaries_filter: filters.BaseFilter = Depends(filter_class),
     ):
         return boundary_service.search(
             db=db,
             sort_by=sort_by,
             sort_order=sort_order,
-            geometry_filter=request.geometry,
-            name_filter=request.name,
-            codes=request.codes,
-            feature_ids=request.feature_ids,
+            request=request,
+            base_filter=boundaries_filter,
         )
 
     @router.get(

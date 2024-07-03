@@ -12,7 +12,7 @@ import schemas
 class BaseFilter:
     def apply(
             self,
-            schema: schemas.SearchRequest,
+            request: schemas.BaseSearchRequest,
             db: Session,
             query: Select,
     ):
@@ -70,10 +70,16 @@ class EldershipsFilter(MunicipalitiesFilter):
             query: Select,
     ):
         query = super().apply(request, db, query)
-        # TODO
-        # if elderships_filter := request.elderships:
-        #     query = apply_municipalities_filter(elderships_filter, query)
-
+        if elderships_filter := request.elderships:
+            query = _apply_general_boundaries_filter(
+                general_boundaries_filter=elderships_filter,
+                query=query,
+                db=db,
+                name_field=models.Elderships.name,
+                feature_id_field=models.Elderships.feature_id,
+                code_field=models.Elderships.code,
+                geometry_field=models.Elderships.geom,
+            )
         return query
 
 

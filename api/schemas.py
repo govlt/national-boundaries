@@ -296,11 +296,11 @@ class CountiesFilter(GeneralBoundariesFilter):
     pass
 
 
-class SearchRequest(BaseModel):
+class BaseSearchRequest(BaseModel):
     pass
 
 
-class CountiesSearchRequest(SearchRequest):
+class CountiesSearchRequest(BaseSearchRequest):
     counties: Optional[CountiesFilter] = Field(
         default=None,
         description="Filter by counties",
