@@ -11,6 +11,7 @@ from starlette import status
 import database
 import schemas
 import service
+import filters
 from service import BoundaryService
 
 
@@ -163,7 +164,7 @@ addresses_router = APIRouter()
     generate_unique_id_function=lambda _: "addresses-search"
 )
 def addresses_search(
-        request: schemas.BoundariesSearchRequest,
+        request: schemas.AddressesSearchRequest,
         sort_by: schemas.SearchSortBy = Query(default=schemas.SearchSortBy.code),
         sort_order: schemas.SearchSortOrder = Query(default=schemas.SearchSortOrder.asc),
         srid: int = Query(
@@ -173,16 +174,15 @@ def addresses_search(
                         "For instance, 3346 is LKS, 4326 is for World Geodetic System 1984 (WGS 84)."
         ),
         db: Session = Depends(database.get_db),
+        addresses_filter: filters.AddressesFilter = Depends(filters.AddressesFilter)
 ):
     return service.AddressesService.search(
         db,
         sort_by=sort_by,
         sort_order=sort_order,
-        geometry_filter=request.geometry,
-        name_filter=request.name,
-        codes=request.codes,
-        feature_ids=request.feature_ids,
+        request=request,
         srid=srid,
+        addresses_filter=addresses_filter,
     )
     # if geometry_filter:
     #     query = self._filter_by_geometry_filter(db, query, geometry_filter)

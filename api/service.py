@@ -2,15 +2,13 @@ from typing import Optional, List, Callable, Type
 
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
-from geoalchemy2.functions import ST_Intersects, ST_Transform, ST_GeomFromEWKT, ST_Contains, ST_IsValid, ST_X, ST_Y
+from geoalchemy2.functions import ST_Transform, ST_X, ST_Y
 from sqlalchemy import select, Select, func, text, Row
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session, InstrumentedAttribute
 from sqlalchemy.sql import operators
-from sqlalchemy.sql.functions import GenericFunction
-from sqlean import OperationalError
 
-import database
+import filters
 import models
 import schemas
 
@@ -60,28 +58,6 @@ _flat_street_object = func.json_object(
 ).label("street")
 
 
-class InvalidRequestGeometry(Exception):
-    def __init__(self, message: str, field: str, value: str):
-        self.message = message
-        self.field = field
-        self.value = value
-        super().__init__(self.message)
-
-
-class GeomFromEWKB:
-    pass
-
-
-def _get_filter_func(filter_method: schemas.GeometryFilterMethod) -> type(GenericFunction):
-    match filter_method:
-        case schemas.GeometryFilterMethod.intersects:
-            return ST_Intersects
-        case schemas.GeometryFilterMethod.contains:
-            return ST_Contains
-        case _:
-            raise ValueError(f"Unknown geometry filter method: {filter_method}")
-
-
 class BoundaryService[S, G]:
     model_class: type[models.BaseBoundaries]
     base_columns: List[InstrumentedAttribute]
@@ -124,69 +100,7 @@ class BoundaryService[S, G]:
 
         return db.execute(query).first()
 
-    @staticmethod
-    def _is_valid_geometry(db: Session, geom: GenericFunction) -> bool:
-        try:
-            return db.execute(ST_IsValid(geom)).scalar() == 1
-        except OperationalError:
-            return False
-
-    def _filter_by_geometry(
-            self,
-            db: Session,
-            query: Select,
-            geom_value: str,
-            field: str,
-            filter_func_type: type(GenericFunction),
-            geom_from_func_type: type(GenericFunction),
-    ):
-        geom = ST_Transform(geom_from_func_type(geom_value), 3346)
-        if not self._is_valid_geometry(db, geom):
-            raise InvalidRequestGeometry(message="Invalid geometry", field=field, value=geom_value, )
-
-        return query.where(filter_func_type(geom, self.model_class.geom))
-
-    def _filter_by_geometry_filter(
-            self,
-            db: Session,
-            query: Select,
-            geometry_filter: schemas.GeometryFilter
-    ) -> Select:
-        filter_func_type = _get_filter_func(geometry_filter.method)
-
-        if ewkb := geometry_filter.ewkb:
-            query = self._filter_by_geometry(
-                db=db,
-                query=query,
-                field="ewkb",
-                geom_value=ewkb,
-                filter_func_type=filter_func_type,
-                geom_from_func_type=database.GeomFromEWKB,
-            )
-
-        if ewkt := geometry_filter.ewkt:
-            query = self._filter_by_geometry(
-                db=db,
-                query=query,
-                field="ewkt",
-                geom_value=ewkt,
-                filter_func_type=filter_func_type,
-                geom_from_func_type=ST_GeomFromEWKT,
-            )
-
-        if geojson := geometry_filter.geojson:
-            query = self._filter_by_geometry(
-                db=db,
-                query=query,
-                field="geojson",
-                geom_value=geojson,
-                filter_func_type=filter_func_type,
-                geom_from_func_type=database.GeomFromGeoJSON,
-            )
-
-        return query
-
-    def _filter_by_name(self, query: Select, name_filter: schemas.NameFilter) -> Select:
+    def _filter_by_name(self, query: Select, name_filter: schemas.StringFilter) -> Select:
         if name_filter.contains:
             query = query.filter(self.model_class.name.icontains(name_filter.contains))
         if name_filter.starts:
@@ -200,14 +114,15 @@ class BoundaryService[S, G]:
             sort_by: schemas.SearchSortBy,
             sort_order: schemas.SearchSortOrder,
             geometry_filter: Optional[schemas.GeometryFilter],
-            name_filter: Optional[schemas.NameFilter],
+            name_filter: Optional[schemas.StringFilter],
             codes: Optional[List[str]],
             feature_ids: Optional[List[int]],
     ) -> Page[Type[S]]:
         query = self.select_func(self.base_columns)
 
         if geometry_filter:
-            query = self._filter_by_geometry_filter(db, query, geometry_filter)
+            query = filters.apply_geometry_filter(geometry_filter=geometry_filter, db=db, query=query,
+                                                  geom_field=self.model_class.geom)
 
         if name_filter:
             query = self._filter_by_name(query, name_filter)
@@ -283,7 +198,6 @@ streets_service = BoundaryService[schemas.Street, schemas.StreetWithGeometry](
 
 
 class AddressesService:
-
     @staticmethod
     def _select_addresses(srid: int):
         query = (select(
@@ -314,13 +228,14 @@ class AddressesService:
             db: Session,
             sort_by: schemas.SearchSortBy,
             sort_order: schemas.SearchSortOrder,
-            geometry_filter: Optional[schemas.GeometryFilter],
-            name_filter: Optional[schemas.NameFilter],
-            codes: Optional[List[str]],
-            feature_ids: Optional[List[int]],
+            request: schemas.AddressesSearchRequest,
+            addresses_filter: filters.AddressesFilter,
             srid: int,
     ):
         query = AddressesService._select_addresses(srid=srid)
+
+        query = addresses_filter.apply(request, db, query)
+
         return paginate(db, query, unique=False)
 
     @staticmethod

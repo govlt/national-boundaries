@@ -138,10 +138,10 @@ class HTTPExceptionResponse(BaseModel):
         }
 
 
-class NameFilter(BaseModel):
+class StringFilter(BaseModel):
     contains: Optional[str] = Field(
         default=None,
-        description="Filter by name containing a string (case insensitive)",
+        description="Filter by containing a string (case insensitive)",
         examples=[
             "vil"
         ],
@@ -149,7 +149,7 @@ class NameFilter(BaseModel):
 
     starts: Optional[str] = Field(
         default=None,
-        description="Filter by name starting with a string (case insensitive)",
+        description="Filter by starting with a string (case insensitive)",
         examples=[
             "Vil"
         ],
@@ -214,7 +214,7 @@ class BoundariesSearchRequest(BaseModel):
         ],
     )
 
-    name: Optional[NameFilter] = Field(
+    name: Optional[StringFilter] = Field(
         default=None,
         description="Filter by name"
     )
@@ -222,4 +222,121 @@ class BoundariesSearchRequest(BaseModel):
     geometry: Optional[GeometryFilter] = Field(
         default=None,
         description="Filter by geometry",
+    )
+
+
+class GeneralBoundariesFilter(BaseModel):
+    codes: Optional[List[int]] = Field(
+        default=None,
+        description="Filter by codes",
+        examples=[
+            []
+        ],
+    )
+
+    feature_ids: Optional[List[int]] = Field(
+        default=None,
+        description="Filter by feature IDs",
+        examples=[
+            []
+        ],
+    )
+
+    name: Optional[StringFilter] = Field(
+        default=None,
+        description="Filter by name"
+    )
+
+    geometry: Optional[GeometryFilter] = Field(
+        default=None,
+        description="Filter by geometry"
+    )
+
+
+class AddressesFilter(BaseModel):
+    codes: Optional[List[int]] = Field(
+        default=None,
+        description="Filter by codes",
+        examples=[
+            []
+        ],
+    )
+
+    feature_ids: Optional[List[int]] = Field(
+        default=None,
+        description="Filter by feature IDs",
+        examples=[
+            []
+        ],
+    )
+
+    geometry: Optional[GeometryFilter] = Field(
+        default=None,
+        description="Filter by geometry"
+    )
+
+
+class StreetsFilter(GeneralBoundariesFilter):
+    pass
+
+
+class ResidentialAreasFilter(GeneralBoundariesFilter):
+    pass
+
+
+class EldershipsFilter(GeneralBoundariesFilter):
+    pass
+
+
+class MunicipalitiesFilter(GeneralBoundariesFilter):
+    pass
+
+
+class CountiesFilter(GeneralBoundariesFilter):
+    pass
+
+
+class SearchRequest(BaseModel):
+    pass
+
+
+class CountiesSearchRequest(SearchRequest):
+    counties: Optional[CountiesFilter] = Field(
+        default=None,
+        description="Filter by counties",
+    )
+
+
+class MunicipalitiesSearchRequest(CountiesSearchRequest):
+    municipalities: Optional[MunicipalitiesFilter] = Field(
+        default=None,
+        description="Filter by municipalities",
+    )
+
+
+class ResidentialAreasSearchRequest(MunicipalitiesSearchRequest):
+    residential_areas: Optional[ResidentialAreasFilter] = Field(
+        default=None,
+        description="Filter by residential areas",
+    )
+
+
+class EldershipsSearchRequest(MunicipalitiesSearchRequest):
+    elderships: Optional[EldershipsFilter] = Field(
+        default=None,
+        description="Filter by elderships",
+    )
+
+
+class StreetsSearchRequest(ResidentialAreasSearchRequest):
+    streets: Optional[StreetsFilter] = Field(
+        default=None,
+        description="Filter by streets",
+    )
+
+
+class AddressesSearchRequest(StreetsSearchRequest):
+    addresses: Optional[AddressesFilter] = Field(
+        default=None,
+        description="Filter by addresses",
     )

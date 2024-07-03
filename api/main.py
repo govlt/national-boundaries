@@ -8,6 +8,7 @@ from fastapi_pagination import add_pagination
 from pydantic import ValidationError
 from pydantic_core import InitErrorDetails, PydanticCustomError
 
+import filters
 import models
 import router
 import schemas
@@ -116,8 +117,8 @@ app.include_router(
 app.include_router(router.health_check_router)
 
 
-@app.exception_handler(service.InvalidRequestGeometry)
-def invalid_request_geometry_exception_handler(request, exc: service.InvalidRequestGeometry):
+@app.exception_handler(filters.InvalidFilterGeometry)
+def invalid_request_geometry_exception_handler(request, exc: filters.InvalidFilterGeometry):
     raise RequestValidationError(
         errors=(
             ValidationError.from_exception_data(
