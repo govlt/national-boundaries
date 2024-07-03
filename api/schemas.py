@@ -113,8 +113,8 @@ class AddressLocation(BaseModel):
 class Address(BaseModel):
     code: int = Field(description="Unique code of the address")
     plot_or_building_number: str = Field(description="Plot or building number of the address")
-    postal_code: str = Field(description="Plot or building number of the address")
     building_block_number: Optional[str] = Field(description="Plot or building number of the address", min_length=1)
+    postal_code: str = Field(description="Postal code of the address")
     location: AddressLocation = Field(description="Location of the address")
 
     street: Optional[FlatStreet] = Field(description="Street information the address belongs to")
@@ -197,34 +197,6 @@ class GeometryFilter(BaseModel):
     )
 
 
-class BoundariesSearchRequest(BaseModel):
-    codes: Optional[List[int]] = Field(
-        default=None,
-        description="Filter by codes",
-        examples=[
-            []
-        ],
-    )
-
-    feature_ids: Optional[List[int]] = Field(
-        default=None,
-        description="Filter by feature IDs",
-        examples=[
-            []
-        ],
-    )
-
-    name: Optional[StringFilter] = Field(
-        default=None,
-        description="Filter by name"
-    )
-
-    geometry: Optional[GeometryFilter] = Field(
-        default=None,
-        description="Filter by geometry",
-    )
-
-
 class GeneralBoundariesFilter(BaseModel):
     codes: Optional[List[int]] = Field(
         default=None,
@@ -247,11 +219,6 @@ class GeneralBoundariesFilter(BaseModel):
         description="Filter by name"
     )
 
-    geometry: Optional[GeometryFilter] = Field(
-        default=None,
-        description="Filter by geometry"
-    )
-
 
 class AddressesFilter(BaseModel):
     codes: Optional[List[int]] = Field(
@@ -268,11 +235,6 @@ class AddressesFilter(BaseModel):
         examples=[
             []
         ],
-    )
-
-    geometry: Optional[GeometryFilter] = Field(
-        default=None,
-        description="Filter by geometry"
     )
 
 
@@ -297,7 +259,10 @@ class CountiesFilter(GeneralBoundariesFilter):
 
 
 class BaseSearchRequest(BaseModel):
-    pass
+    geometry: Optional[GeometryFilter] = Field(
+        default=None,
+        description="Filter by geometry",
+    )
 
 
 class CountiesSearchRequest(BaseSearchRequest):

@@ -18,7 +18,7 @@ from service import BoundaryService
 def create_boundaries_router(
         boundary_service: BoundaryService,
         filter_class: type[filters.BaseFilter],
-        requestModel: type[schemas.BaseSearchRequest],
+        request_model: type[schemas.BaseSearchRequest],
         response_model: type[BaseModel],
         response_with_geometry_model: type[BaseModel],
         item_name: str,
@@ -37,7 +37,7 @@ def create_boundaries_router(
         generate_unique_id_function=lambda route: f"{item_name_plural.replace(' ', '-')}-search"
     )
     def boundaries_search(
-            request: requestModel,
+            request: request_model,
             sort_by: schemas.SearchSortBy = Query(default=schemas.SearchSortBy.code),
             sort_order: schemas.SearchSortOrder = Query(default=schemas.SearchSortOrder.asc),
             db: Session = Depends(database.get_db),
@@ -185,24 +185,6 @@ def addresses_search(
         srid=srid,
         addresses_filter=addresses_filter,
     )
-    # if geometry_filter:
-    #     query = self._filter_by_geometry_filter(db, query, geometry_filter)
-    #
-    # if name_filter:
-    #     query = self._filter_by_name(query, name_filter)
-    #
-    # if feature_ids and len(feature_ids) > 0:
-    #     query = query.filter(self.model_class.feature_id.in_(feature_ids))
-    #
-    # if codes and len(codes) > 0:
-    #     query = query.filter(self.model_class.code.in_(codes))
-    #
-    # sort_by_field = operators.collate(getattr(self.model_class, sort_by), "NOCASE")
-
-    # if sort_order == schemas.SearchSortOrder.desc:
-    #     sort_by_field = sort_by_field.desc()
-
-    # query = query.order_by(sort_by_field)
 
 
 @addresses_router.get(

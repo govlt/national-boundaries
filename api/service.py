@@ -113,7 +113,7 @@ class BoundaryService[S, G]:
             db: Session,
             sort_by: schemas.SearchSortBy,
             sort_order: schemas.SearchSortOrder,
-            request: schemas.AddressesSearchRequest,
+            request: schemas.BaseSearchRequest,
             base_filter: filters.BaseFilter,
     ) -> Page[Type[S]]:
         query = self.select_func(self.base_columns)
