@@ -1,8 +1,7 @@
-from typing import List
-
 from fastapi import HTTPException, APIRouter, Depends, Path
 from fastapi.params import Query
 from fastapi_pagination import Page
+from fastapi_pagination.ext.async_sqlalchemy import paginate
 from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
@@ -11,16 +10,20 @@ from starlette import status
 
 import database
 import schemas
+import service
+import filters
 from service import BoundaryService
 
 
 def create_boundaries_router(
         boundary_service: BoundaryService,
+        filter_class: type[filters.BaseFilter],
+        request_model: type[schemas.BaseSearchRequest],
         response_model: type[BaseModel],
         response_with_geometry_model: type[BaseModel],
         item_name: str,
         item_name_plural: str,
-        example_code: str
+        example_code: int
 ):
     router = APIRouter()
 
@@ -34,19 +37,18 @@ def create_boundaries_router(
         generate_unique_id_function=lambda route: f"{item_name_plural.replace(' ', '-')}-search"
     )
     def boundaries_search(
-            request: schemas.BoundariesSearchRequest,
+            request: request_model,
             sort_by: schemas.SearchSortBy = Query(default=schemas.SearchSortBy.code),
             sort_order: schemas.SearchSortOrder = Query(default=schemas.SearchSortOrder.asc),
             db: Session = Depends(database.get_db),
+            boundaries_filter: filters.BaseFilter = Depends(filter_class),
     ):
         return boundary_service.search(
             db=db,
             sort_by=sort_by,
             sort_order=sort_order,
-            geometry_filter=request.geometry,
-            name_filter=request.name,
-            codes=request.codes,
-            feature_ids=request.feature_ids,
+            request=request,
+            base_filter=boundaries_filter,
         )
 
     @router.get(
@@ -61,7 +63,7 @@ def create_boundaries_router(
         generate_unique_id_function=lambda route: f"{item_name_plural.replace(' ', '-')}-get"
     )
     def get(
-            code: str = Path(
+            code: int = Path(
                 description=f"The code of the {item_name} to retrieve",
                 example=example_code
             ),
@@ -88,7 +90,7 @@ def create_boundaries_router(
         generate_unique_id_function=lambda route: f"{item_name_plural.replace(' ', '-')}-get-with-geometry"
     )
     def get_with_geometry(
-            code: str = Path(
+            code: int = Path(
                 description=f"The code of the {item_name} to retrieve",
                 example=example_code
             ),
@@ -147,4 +149,72 @@ def get_health(db: Session = Depends(database.get_db)) -> schemas.HealthCheck:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Not healthy"
+        )
+
+
+addresses_router = APIRouter()
+
+
+@addresses_router.post(
+    "/search",
+    response_model=Page[schemas.Address],
+    summary=f"Search for address with pagination using various filters",
+    description=f"Search for addresses with pagination using various filters such as address codes, "
+                f"feature IDs, name. Additionally, you can filter by GeoJson, EWKT geometry",
+    response_description=f"A paginated list of addresses matching the search criteria.",
+    generate_unique_id_function=lambda _: "addresses-search"
+)
+def addresses_search(
+        request: schemas.AddressesSearchRequest,
+        sort_by: schemas.SearchSortBy = Query(default=schemas.SearchSortBy.code),
+        sort_order: schemas.SearchSortOrder = Query(default=schemas.SearchSortOrder.asc),
+        srid: int = Query(
+            3346,
+            example=4326,
+            description="A spatial reference identifier (SRID) for geometry output. "
+                        "For instance, 3346 is LKS, 4326 is for World Geodetic System 1984 (WGS 84)."
+        ),
+        db: Session = Depends(database.get_db),
+        addresses_filter: filters.AddressesFilter = Depends(filters.AddressesFilter)
+):
+    return service.AddressesService.search(
+        db,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        request=request,
+        srid=srid,
+        addresses_filter=addresses_filter,
+    )
+
+
+@addresses_router.get(
+    "/{code}",
+    response_model=schemas.Address,
+    summary=f"Get address by code",
+    description=f"Retrieve a address by its unique code.",
+    responses={
+        404: {"description": "Address not found", "model": schemas.HTTPExceptionResponse},
+    },
+    response_description=f"Details of the address with the specified code.",
+    generate_unique_id_function=lambda route: "addresses-get"
+)
+def get(
+        code: int = Path(
+            description=f"The code of the address to retrieve",
+            example=155218235
+        ),
+        srid: int = Query(
+            3346,
+            example=4326,
+            description="A spatial reference identifier (SRID) for geometry output. "
+                        "For instance, 3346 is LKS, 4326 is for World Geodetic System 1984 (WGS 84)."
+        ),
+        db: Session = Depends(database.get_db),
+):
+    if item := service.AddressesService.get(db=db, code=code, srid=srid):
+        return item
+    else:
+        raise HTTPException(
+            status_code=404,
+            detail="Not found",
         )

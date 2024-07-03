@@ -22,7 +22,7 @@ class Geometry(BaseModel):
 
 
 class County(BaseModel):
-    code: str = Field(description="Unique code of the county")
+    code: int = Field(description="Unique code of the county")
     name: str = Field(description="Name of the county")
     feature_id: int = Field(description="Feature ID of the county")
     area_ha: float = Field(description="Area of the county in hectares")
@@ -36,7 +36,7 @@ class CountyWithGeometry(County):
 
 
 class Municipality(BaseModel):
-    code: str = Field(description="Unique code of the municipality")
+    code: int = Field(description="Unique code of the municipality")
     name: str = Field(description="Name of the municipality")
     feature_id: int = Field(description="Feature ID of the municipality")
     area_ha: float = Field(description="Area of the municipality in hectares")
@@ -51,7 +51,7 @@ class MunicipalityWithGeometry(Municipality):
 
 
 class Eldership(BaseModel):
-    code: str = Field(description="Unique code of the eldership")
+    code: int = Field(description="Unique code of the eldership")
     name: str = Field(description="Name of the eldership")
     feature_id: int = Field(description="Feature ID of the eldership")
     area_ha: float = Field(description="Area of the eldership in hectares")
@@ -65,19 +65,63 @@ class EldershipWithGeometry(Eldership):
     geometry: Geometry = Field(description="Geometry information of the eldership")
 
 
-class ResidentialArea(BaseModel):
-    code: str = Field(description="Unique code of the residential area")
+class FlatResidentialArea(BaseModel):
+    code: int = Field(description="Unique code of the residential area")
     name: str = Field(description="Name of the residential area")
     feature_id: int = Field(description="Feature ID of the residential area")
     area_ha: float = Field(description="Area of the residential area in hectares")
-    municipality: Municipality = Field(description="Municipality information the residential area belongs to")
 
     class Config:
         from_attributes = True
 
 
-class ResidentialAreaWithGeometry(Eldership):
+class ResidentialArea(FlatResidentialArea):
+    municipality: Municipality = Field(description="Municipality information the residential area belongs to")
+
+
+class ResidentialAreaWithGeometry(ResidentialArea):
     geometry: Geometry = Field(description="Geometry information of the residential area")
+
+
+class FlatStreet(BaseModel):
+    code: int = Field(description="Unique code of the street")
+    name: str = Field(description="Name of the street")
+    full_name: str = Field(description="The full name of the street, including its type")
+    feature_id: int = Field(description="Feature ID of the street")
+    length_m: float = Field(description="The total length of the street in meters")
+
+    class Config:
+        from_attributes = True
+
+
+class Street(FlatStreet):
+    residential_area: ResidentialArea = Field(description="Residential area information the street belongs to")
+
+    class Config:
+        from_attributes = True
+
+
+class StreetWithGeometry(Street):
+    geometry: Geometry = Field(description="Line geometry information of the street")
+
+
+class AddressLocation(BaseModel):
+    latitude: Optional[float] = Field(description="Latitude of the address")
+    longitude: Optional[float] = Field(description="Longitude of the address")
+
+
+class Address(BaseModel):
+    code: int = Field(description="Unique code of the address")
+    plot_or_building_number: str = Field(description="Plot or building number of the address")
+    building_block_number: Optional[str] = Field(description="Plot or building number of the address", min_length=1)
+    postal_code: str = Field(description="Postal code of the address")
+    location: AddressLocation = Field(description="Location of the address")
+
+    street: Optional[FlatStreet] = Field(description="Street information the address belongs to")
+    residential_area: Optional[FlatResidentialArea] = Field(
+        description="Residential area information the address belongs to",
+    )
+    municipality: Municipality = Field(description="Municipality information the address belongs to")
 
 
 class HealthCheck(BaseModel):
@@ -94,10 +138,10 @@ class HTTPExceptionResponse(BaseModel):
         }
 
 
-class NameFilter(BaseModel):
+class StringFilter(BaseModel):
     contains: Optional[str] = Field(
         default=None,
-        description="Filter by name containing a string (case insensitive)",
+        description="Filter by containing a string (case insensitive)",
         examples=[
             "vil"
         ],
@@ -105,7 +149,7 @@ class NameFilter(BaseModel):
 
     starts: Optional[str] = Field(
         default=None,
-        description="Filter by name starting with a string (case insensitive)",
+        description="Filter by starting with a string (case insensitive)",
         examples=[
             "Vil"
         ],
@@ -153,8 +197,8 @@ class GeometryFilter(BaseModel):
     )
 
 
-class BoundariesSearchRequest(BaseModel):
-    codes: Optional[List[str]] = Field(
+class GeneralBoundariesFilter(BaseModel):
+    codes: Optional[List[int]] = Field(
         default=None,
         description="Filter by codes",
         examples=[
@@ -170,12 +214,94 @@ class BoundariesSearchRequest(BaseModel):
         ],
     )
 
-    name: Optional[NameFilter] = Field(
+    name: Optional[StringFilter] = Field(
         default=None,
         description="Filter by name"
     )
 
+
+class AddressesFilter(BaseModel):
+    codes: Optional[List[int]] = Field(
+        default=None,
+        description="Filter by codes",
+        examples=[
+            []
+        ],
+    )
+
+    feature_ids: Optional[List[int]] = Field(
+        default=None,
+        description="Filter by feature IDs",
+        examples=[
+            []
+        ],
+    )
+
+
+class StreetsFilter(GeneralBoundariesFilter):
+    pass
+
+
+class ResidentialAreasFilter(GeneralBoundariesFilter):
+    pass
+
+
+class EldershipsFilter(GeneralBoundariesFilter):
+    pass
+
+
+class MunicipalitiesFilter(GeneralBoundariesFilter):
+    pass
+
+
+class CountiesFilter(GeneralBoundariesFilter):
+    pass
+
+
+class BaseSearchRequest(BaseModel):
     geometry: Optional[GeometryFilter] = Field(
         default=None,
         description="Filter by geometry",
+    )
+
+
+class CountiesSearchRequest(BaseSearchRequest):
+    counties: Optional[CountiesFilter] = Field(
+        default=None,
+        description="Filter by counties",
+    )
+
+
+class MunicipalitiesSearchRequest(CountiesSearchRequest):
+    municipalities: Optional[MunicipalitiesFilter] = Field(
+        default=None,
+        description="Filter by municipalities",
+    )
+
+
+class ResidentialAreasSearchRequest(MunicipalitiesSearchRequest):
+    residential_areas: Optional[ResidentialAreasFilter] = Field(
+        default=None,
+        description="Filter by residential areas",
+    )
+
+
+class EldershipsSearchRequest(MunicipalitiesSearchRequest):
+    elderships: Optional[EldershipsFilter] = Field(
+        default=None,
+        description="Filter by elderships",
+    )
+
+
+class StreetsSearchRequest(ResidentialAreasSearchRequest):
+    streets: Optional[StreetsFilter] = Field(
+        default=None,
+        description="Filter by streets",
+    )
+
+
+class AddressesSearchRequest(StreetsSearchRequest):
+    addresses: Optional[AddressesFilter] = Field(
+        default=None,
+        description="Filter by addresses",
     )

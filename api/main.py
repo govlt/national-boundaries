@@ -8,6 +8,7 @@ from fastapi_pagination import add_pagination
 from pydantic import ValidationError
 from pydantic_core import InitErrorDetails, PydanticCustomError
 
+import filters
 import models
 import router
 import schemas
@@ -47,9 +48,11 @@ app.include_router(
         boundary_service=service.county_service,
         response_model=schemas.County,
         response_with_geometry_model=schemas.CountyWithGeometry,
+        filter_class=filters.CountiesFilter,
+        request_model=schemas.CountiesSearchRequest,
         item_name="county",
         item_name_plural="counties",
-        example_code="10"
+        example_code=10
     ),
     prefix="/v1/counties",
     tags=["counties"],
@@ -60,9 +63,11 @@ app.include_router(
         boundary_service=service.municipalities_service,
         response_model=schemas.Municipality,
         response_with_geometry_model=schemas.MunicipalityWithGeometry,
+        filter_class=filters.MunicipalitiesFilter,
+        request_model=schemas.MunicipalitiesSearchRequest,
         item_name="municipality",
         item_name_plural="municipalities",
-        example_code="13",
+        example_code=13,
     ),
     prefix="/v1/municipalities",
     tags=["municipalities"],
@@ -73,9 +78,11 @@ app.include_router(
         boundary_service=service.elderships_service,
         response_model=schemas.Eldership,
         response_with_geometry_model=schemas.EldershipWithGeometry,
+        filter_class=filters.EldershipsFilter,
+        request_model=schemas.EldershipsSearchRequest,
         item_name="eldership",
         item_name_plural="elderships",
-        example_code="1306",
+        example_code=1306,
     ),
     prefix="/v1/elderships",
     tags=["elderships"],
@@ -86,19 +93,42 @@ app.include_router(
         boundary_service=service.residential_areas_service,
         response_model=schemas.ResidentialArea,
         response_with_geometry_model=schemas.ResidentialAreaWithGeometry,
+        filter_class=filters.ResidentialAreasFilter,
+        request_model=schemas.ResidentialAreasSearchRequest,
         item_name="residential area",
         item_name_plural="residential areas",
-        example_code="31003"
+        example_code=31003
     ),
     prefix="/v1/residential-areas",
     tags=["residential-areas"],
 )
 
+app.include_router(
+    router.create_boundaries_router(
+        boundary_service=service.streets_service,
+        response_model=schemas.Street,
+        response_with_geometry_model=schemas.StreetWithGeometry,
+        filter_class=filters.StreetsFilter,
+        request_model=schemas.StreetsSearchRequest,
+        item_name="street",
+        item_name_plural="streets",
+        example_code=1453778
+    ),
+    prefix="/v1/streets",
+    tags=["streets"],
+)
+
+app.include_router(
+    router.addresses_router,
+    prefix="/v1/addresses",
+    tags=["addresses"],
+)
+
 app.include_router(router.health_check_router)
 
 
-@app.exception_handler(service.InvalidRequestGeometry)
-def invalid_request_geometry_exception_handler(request, exc: service.InvalidRequestGeometry):
+@app.exception_handler(filters.InvalidFilterGeometry)
+def invalid_request_geometry_exception_handler(request, exc: filters.InvalidFilterGeometry):
     raise RequestValidationError(
         errors=(
             ValidationError.from_exception_data(
