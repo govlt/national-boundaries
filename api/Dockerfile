@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y csvkit &&  rm -rf /var/lib/apt/lists/*
 
 COPY create-database.sh ./create-database.sh
 
-RUN sh create-database.sh
+RUN bash create-database.sh
 
 # Multi stage poetry docker build https://medium.com/@albertazzir/blazing-fast-python-docker-builds-with-poetry-a78a66f5aed0
 FROM python:3.12 as builder
