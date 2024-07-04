@@ -12,7 +12,7 @@ import schemas
 
 
 class BaseFilter(ABC):
-    model_class: type(database.Base)
+    geom_field: type[InstrumentedAttribute]
 
     def apply(
             self,
@@ -31,22 +31,23 @@ class BaseFilter(ABC):
     def _apply_general_boundaries_filter(
             self,
             general_boundaries_filter: schemas.GeneralBoundariesFilter,
-            query: Select
+            query: Select,
+            model_class: type[models.BaseBoundaries],
     ) -> Select:
-        if hasattr(self.model_class, 'name') and general_boundaries_filter.name:
+        if hasattr(model_class, 'name') and general_boundaries_filter.name:
             query = _filter_by_string_field(
                 string_filter=general_boundaries_filter.name,
                 query=query,
-                string_field=getattr(self.model_class, 'name')
+                string_field=getattr(model_class, 'name')
             )
 
         feature_ids = general_boundaries_filter.feature_ids
         if feature_ids and len(general_boundaries_filter.feature_ids) > 0:
-            query = query.filter(getattr(self.model_class, 'feature_id').in_(feature_ids))
+            query = query.filter(getattr(model_class, 'feature_id').in_(feature_ids))
 
         codes = general_boundaries_filter.codes
         if codes and len(codes) > 0:
-            query = query.filter(getattr(self.model_class, 'code').in_(codes))
+            query = query.filter(getattr(model_class, 'code').in_(codes))
 
         return query
 
@@ -57,7 +58,9 @@ class BaseFilter(ABC):
             query: Select,
     ) -> Select:
         filter_func_type = _get_filter_func(geometry_filter.method)
-        geom_field = getattr(self.model_class, 'geom')
+        geom_field = getattr(self.geom_field, 'geom')
+        if geom_field is None:
+            raise ValueError('Geometry field is not defined')
 
         if ewkb := geometry_filter.ewkb:
             query = _filter_by_geometry(
@@ -96,7 +99,7 @@ class BaseFilter(ABC):
 
 
 class CountiesFilter(BaseFilter):
-    model_class = models.Counties
+    geom_field = models.Counties.geom
 
     def apply(
             self,
@@ -107,13 +110,17 @@ class CountiesFilter(BaseFilter):
         query = super().apply(request, db, query)
 
         if counties_filter := request.counties:
-            query = self._apply_general_boundaries_filter(general_boundaries_filter=counties_filter, query=query)
+            query = self._apply_general_boundaries_filter(
+                general_boundaries_filter=counties_filter,
+                query=query,
+                model_class=models.Counties
+            )
 
         return query
 
 
 class MunicipalitiesFilter(CountiesFilter):
-    model_class = models.Municipalities
+    geom_field = models.Municipalities.geom
 
     def apply(
             self,
@@ -126,13 +133,14 @@ class MunicipalitiesFilter(CountiesFilter):
             query = self._apply_general_boundaries_filter(
                 general_boundaries_filter=municipalities_filter,
                 query=query,
+                model_class=models.Municipalities
             )
 
         return query
 
 
 class EldershipsFilter(MunicipalitiesFilter):
-    model_class = models.Elderships
+    geom_field = models.Elderships.geom
 
     def apply(
             self,
@@ -145,12 +153,13 @@ class EldershipsFilter(MunicipalitiesFilter):
             query = self._apply_general_boundaries_filter(
                 general_boundaries_filter=elderships_filter,
                 query=query,
+                model_class=models.Elderships
             )
         return query
 
 
 class ResidentialAreasFilter(MunicipalitiesFilter):
-    model_class = models.ResidentialAreas
+    geom_field = models.ResidentialAreas.geom
 
     def apply(
             self,
@@ -161,14 +170,16 @@ class ResidentialAreasFilter(MunicipalitiesFilter):
         query = super().apply(request, db, query)
         if residential_areas_filter := request.residential_areas:
             query = self._apply_general_boundaries_filter(
-                general_boundaries_filter=residential_areas_filter, query=query,
+                general_boundaries_filter=residential_areas_filter,
+                query=query,
+                model_class=models.ResidentialAreas
             )
 
         return query
 
 
 class StreetsFilter(ResidentialAreasFilter):
-    model_class = models.Streets
+    geom_field = models.Streets.geom
 
     def apply(
             self,
@@ -181,13 +192,14 @@ class StreetsFilter(ResidentialAreasFilter):
             query = self._apply_general_boundaries_filter(
                 general_boundaries_filter=streets_filter,
                 query=query,
+                model_class=models.Streets
             )
 
         return query
 
 
 class AddressesFilter(StreetsFilter):
-    model_class = models.Addresses
+    geom_field = models.Addresses.geom
 
     def apply(
             self,
@@ -213,8 +225,8 @@ def _filter_by_geometry(
         geom_value: str,
         field: str,
         geom_field: InstrumentedAttribute,
-        filter_func_type: type(GenericFunction),
-        geom_from_func_type: type(GenericFunction),
+        filter_func_type: type[GenericFunction],
+        geom_from_func_type: type[GenericFunction],
 ):
     geom = ST_Transform(geom_from_func_type(geom_value), 3346)
     if not _is_valid_geometry(db, geom):
@@ -223,7 +235,7 @@ def _filter_by_geometry(
     return query.where(filter_func_type(geom, geom_field))
 
 
-def _get_filter_func(filter_method: schemas.GeometryFilterMethod) -> type(GenericFunction):
+def _get_filter_func(filter_method: schemas.GeometryFilterMethod) -> type[GenericFunction]:
     match filter_method:
         case schemas.GeometryFilterMethod.intersects:
             return ST_Intersects

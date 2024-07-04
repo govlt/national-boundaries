@@ -107,6 +107,7 @@ class StreetWithGeometry(Street):
 
 class Address(BaseModel):
     code: int = Field(description="Unique code of the address")
+    feature_id: int = Field(description="Feature ID of the address")
     plot_or_building_number: str = Field(description="Plot or building number of the address")
     building_block_number: Optional[str] = Field(description="Plot or building number of the address", min_length=1)
     postal_code: str = Field(description="Postal code of the address")
@@ -138,7 +139,7 @@ class StringFilter(BaseModel):
         default=None,
         description="Filter by containing a string (case insensitive)",
         examples=[
-            "vil"
+            ""
         ],
     )
 
@@ -146,7 +147,7 @@ class StringFilter(BaseModel):
         default=None,
         description="Filter by starting with a string (case insensitive)",
         examples=[
-            "Vil"
+            ""
         ],
     )
 

@@ -12,7 +12,7 @@ import filters
 import models
 import router
 import schemas
-import service
+import services
 from database import engine
 
 if SENTRY_DSN := os.environ.get("SENTRY_DSN"):
@@ -45,7 +45,7 @@ models.Base.metadata.create_all(bind=engine)
 
 app.include_router(
     router.create_boundaries_router(
-        boundary_service=service.county_service,
+        service_class=services.CountiesService,
         response_model=schemas.County,
         response_with_geometry_model=schemas.CountyWithGeometry,
         filter_class=filters.CountiesFilter,
@@ -60,7 +60,7 @@ app.include_router(
 
 app.include_router(
     router.create_boundaries_router(
-        boundary_service=service.municipalities_service,
+        service_class=services.MunicipalitiesService,
         response_model=schemas.Municipality,
         response_with_geometry_model=schemas.MunicipalityWithGeometry,
         filter_class=filters.MunicipalitiesFilter,
@@ -75,7 +75,7 @@ app.include_router(
 
 app.include_router(
     router.create_boundaries_router(
-        boundary_service=service.elderships_service,
+        service_class=services.EldershipsService,
         response_model=schemas.Eldership,
         response_with_geometry_model=schemas.EldershipWithGeometry,
         filter_class=filters.EldershipsFilter,
@@ -90,7 +90,7 @@ app.include_router(
 
 app.include_router(
     router.create_boundaries_router(
-        boundary_service=service.residential_areas_service,
+        service_class=services.ResidentialAreasService,
         response_model=schemas.ResidentialArea,
         response_with_geometry_model=schemas.ResidentialAreaWithGeometry,
         filter_class=filters.ResidentialAreasFilter,
@@ -105,7 +105,7 @@ app.include_router(
 
 app.include_router(
     router.create_boundaries_router(
-        boundary_service=service.streets_service,
+        service_class=services.StreetsService,
         response_model=schemas.Street,
         response_with_geometry_model=schemas.StreetWithGeometry,
         filter_class=filters.StreetsFilter,
