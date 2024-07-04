@@ -1,10 +1,9 @@
 import abc
-from abc import ABC
-from typing import Optional, List, Callable, Type
+from typing import Optional, Type
 
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
-from geoalchemy2.functions import ST_Transform, ST_X, ST_Y
+from geoalchemy2.functions import ST_Transform
 from sqlalchemy import select, Select, func, text, Row, Label
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session, InstrumentedAttribute

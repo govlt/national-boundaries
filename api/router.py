@@ -1,7 +1,6 @@
 from fastapi import HTTPException, APIRouter, Depends, Path
 from fastapi.params import Query
 from fastapi_pagination import Page
-from fastapi_pagination.ext.async_sqlalchemy import paginate
 from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
@@ -9,13 +8,13 @@ from sqlalchemy.orm import Session
 from starlette import status
 
 import database
-import schemas
-import service
 import filters
+import schemas
+import services
 
 
 def create_boundaries_router(
-        service_class: type[service.BaseBoundariesService],
+        service_class: type[services.BaseBoundariesService],
         filter_class: type[filters.BaseFilter],
         request_model: type[schemas.BaseSearchRequest],
         response_model: type[BaseModel],
@@ -41,9 +40,9 @@ def create_boundaries_router(
             sort_order: schemas.SearchSortOrder = Query(default=schemas.SearchSortOrder.asc),
             db: Session = Depends(database.get_db),
             boundaries_filter: filters.BaseFilter = Depends(filter_class),
-            boundaries_service: service.BaseBoundariesService = Depends(service_class),
+            service: services.BaseBoundariesService = Depends(service_class),
     ):
-        return boundaries_service.search(
+        return service.search(
             db=db,
             sort_by=sort_by,
             sort_order=sort_order,
@@ -69,9 +68,9 @@ def create_boundaries_router(
                 example=example_code
             ),
             db: Session = Depends(database.get_db),
-            boundaries_service: service.BaseBoundariesService = Depends(service_class),
+            service: services.BaseBoundariesService = Depends(service_class),
     ):
-        if item := boundaries_service.get_by_code(db=db, code=code):
+        if item := service.get_by_code(db=db, code=code):
             return item
         else:
             raise HTTPException(
@@ -103,9 +102,9 @@ def create_boundaries_router(
                 description="A spatial reference identifier (SRID) for geometry output. "
                             "For instance, 3346 is LKS, 4326 is for World Geodetic System 1984 (WGS 84)."
             ),
-            boundaries_service: service.BaseBoundariesService = Depends(service_class),
+            service: services.BaseBoundariesService = Depends(service_class),
     ):
-        if row := boundaries_service.get_by_code(db=db, code=code, srid=srid):
+        if row := service.get_by_code(db=db, code=code, srid=srid):
             return row
         else:
             raise HTTPException(
@@ -161,10 +160,10 @@ addresses_router = APIRouter()
 @addresses_router.post(
     "/search",
     response_model=Page[schemas.Address],
-    summary=f"Search for address with pagination using various filters",
-    description=f"Search for addresses with pagination using various filters such as address codes, "
-                f"feature IDs, name. Additionally, you can filter by GeoJson, EWKT geometry",
-    response_description=f"A paginated list of addresses matching the search criteria.",
+    summary="Search for address with pagination using various filters",
+    description="Search for addresses with pagination using various filters such as address codes, "
+                "feature IDs, name. Additionally, you can filter by GeoJson, EWKT geometry",
+    response_description="A paginated list of addresses matching the search criteria.",
     generate_unique_id_function=lambda _: "addresses-search"
 )
 def addresses_search(
@@ -179,9 +178,9 @@ def addresses_search(
         ),
         db: Session = Depends(database.get_db),
         addresses_filter: filters.AddressesFilter = Depends(filters.AddressesFilter),
-        addresses_service: service.AddressesService = Depends(service.AddressesService),
+        service: services.AddressesService = Depends(services.AddressesService),
 ):
-    return addresses_service.search(
+    return service.search(
         db,
         sort_by=sort_by,
         sort_order=sort_order,
@@ -194,17 +193,17 @@ def addresses_search(
 @addresses_router.get(
     "/{code}",
     response_model=schemas.Address,
-    summary=f"Get address by code",
-    description=f"Retrieve a address by its unique code.",
+    summary="Get address by code",
+    description="Retrieve a address by its unique code.",
     responses={
         404: {"description": "Address not found", "model": schemas.HTTPExceptionResponse},
     },
-    response_description=f"Details of the address with the specified code.",
+    response_description="Details of the address with the specified code.",
     generate_unique_id_function=lambda route: "addresses-get"
 )
 def get(
         code: int = Path(
-            description=f"The code of the address to retrieve",
+            description="The code of the address to retrieve",
             example=155218235
         ),
         srid: int = Query(
@@ -214,9 +213,9 @@ def get(
                         "For instance, 3346 is LKS, 4326 is for World Geodetic System 1984 (WGS 84)."
         ),
         db: Session = Depends(database.get_db),
-        addresses_service: service.AddressesService = Depends(service.AddressesService),
+        service: services.AddressesService = Depends(services.AddressesService),
 ):
-    if item := addresses_service.get_by_code(db=db, code=code, srid=srid):
+    if item := service.get_by_code(db=db, code=code, srid=srid):
         return item
     else:
         raise HTTPException(
