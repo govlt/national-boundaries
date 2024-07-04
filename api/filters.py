@@ -12,7 +12,7 @@ import schemas
 
 
 class BaseFilter(ABC):
-    geom_field: type[InstrumentedAttribute]
+    model_class: models.BaseBoundaries = None
 
     def apply(
             self,
@@ -58,7 +58,8 @@ class BaseFilter(ABC):
             query: Select,
     ) -> Select:
         filter_func_type = _get_filter_func(geometry_filter.method)
-        geom_field = getattr(self.geom_field, 'geom')
+
+        geom_field = getattr(self.model_class, 'geom')
         if geom_field is None:
             raise ValueError('Geometry field is not defined')
 
@@ -99,7 +100,7 @@ class BaseFilter(ABC):
 
 
 class CountiesFilter(BaseFilter):
-    geom_field = models.Counties.geom
+    model_class = models.Counties
 
     def apply(
             self,
@@ -120,7 +121,7 @@ class CountiesFilter(BaseFilter):
 
 
 class MunicipalitiesFilter(CountiesFilter):
-    geom_field = models.Municipalities.geom
+    model_class = models.Municipalities
 
     def apply(
             self,
@@ -140,7 +141,7 @@ class MunicipalitiesFilter(CountiesFilter):
 
 
 class EldershipsFilter(MunicipalitiesFilter):
-    geom_field = models.Elderships.geom
+    model_class = models.Elderships
 
     def apply(
             self,
@@ -159,7 +160,7 @@ class EldershipsFilter(MunicipalitiesFilter):
 
 
 class ResidentialAreasFilter(MunicipalitiesFilter):
-    geom_field = models.ResidentialAreas.geom
+    model_class = models.ResidentialAreas
 
     def apply(
             self,
@@ -179,7 +180,7 @@ class ResidentialAreasFilter(MunicipalitiesFilter):
 
 
 class StreetsFilter(ResidentialAreasFilter):
-    geom_field = models.Streets.geom
+    model_class = models.Streets
 
     def apply(
             self,
@@ -199,7 +200,7 @@ class StreetsFilter(ResidentialAreasFilter):
 
 
 class AddressesFilter(StreetsFilter):
-    geom_field = models.Addresses.geom
+    model_class = models.Addresses
 
     def apply(
             self,
