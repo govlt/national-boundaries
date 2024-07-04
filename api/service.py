@@ -193,14 +193,10 @@ class AddressesService:
             models.Addresses.plot_or_building_number,
             models.Addresses.building_block_number,
             models.Addresses.postal_code,
+            ST_Transform(models.Addresses.geom, srid).label("geometry"),
             _flat_residential_area_object,
             _municipality_object,
-            _flat_street_object,
-            func.json_object(
-                "longitude", ST_Y(ST_Transform(models.Addresses.geom, srid)),
-                "latitude", ST_X(ST_Transform(models.Addresses.geom, srid)),
-                type_=JSONB,
-            ).label("location"),
+            _flat_street_object
         ).select_from(models.Addresses)
                  .outerjoin(models.Addresses.municipality)
                  .outerjoin(models.Municipalities.county)
