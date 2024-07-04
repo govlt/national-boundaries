@@ -139,7 +139,7 @@ class StringFilter(BaseModel):
         default=None,
         description="Filter by containing a string (case insensitive)",
         examples=[
-            "vil"
+            ""
         ],
     )
 
@@ -147,7 +147,7 @@ class StringFilter(BaseModel):
         default=None,
         description="Filter by starting with a string (case insensitive)",
         examples=[
-            "Vil"
+            ""
         ],
     )
 
