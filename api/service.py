@@ -1,9 +1,11 @@
+import abc
+from abc import ABC
 from typing import Optional, List, Callable, Type
 
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
 from geoalchemy2.functions import ST_Transform, ST_X, ST_Y
-from sqlalchemy import select, Select, func, text, Row
+from sqlalchemy import select, Select, func, text, Row, Label
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session, InstrumentedAttribute
 from sqlalchemy.sql import operators
@@ -58,55 +60,19 @@ _flat_street_object = func.json_object(
 ).label("street")
 
 
-class BoundaryService[S, G]:
-    model_class: type[models.BaseBoundaries]
-    base_columns: List[InstrumentedAttribute]
-    select_func: Callable[[List[InstrumentedAttribute]], Select]
+class BaseBoundariesService(abc.ABC):
 
-    def __init__(
-            self,
-            model_class: type[models.BaseBoundaries],
-            additional_select_columns: List[InstrumentedAttribute],
-            select_func: Callable[[List[InstrumentedAttribute]], Select]
-    ):
-        self.model_class = model_class
-        self.select_func = select_func
-        self.base_columns = [
-            model_class.name,
-            model_class.code,
-            model_class.feature_id,
-            *additional_select_columns
-        ]
+    @abc.abstractmethod
+    def _get_select_query(self, srid: Optional[int]) -> Select:
+        pass
 
-    def get_without_geometry(self, db: Session, code: str) -> Optional[Type[S]]:
-        query = self.select_func(self.base_columns)
-        query = query.filter(self.model_class.code == code)
+    @abc.abstractmethod
+    def _filter_by_code(self, query: Select, code: int) -> Select:
+        pass
 
-        return db.execute(query).first()
-
-    def get_with_geometry(
-            self,
-            db: Session,
-            code: str,
-            srid: int,
-    ) -> Optional[Type[G]]:
-        query = self.select_func(
-            [
-                *self.base_columns,
-                ST_Transform(self.model_class.geom, srid).label("geometry"),
-            ]
-        )
-        query = query.filter(self.model_class.code == code)
-
-        return db.execute(query).first()
-
-    def _filter_by_name(self, query: Select, name_filter: schemas.StringFilter) -> Select:
-        if name_filter.contains:
-            query = query.filter(self.model_class.name.icontains(name_filter.contains))
-        if name_filter.starts:
-            query = query.filter(self.model_class.name.istartswith(name_filter.starts))
-
-        return query
+    @staticmethod
+    def _get_geometry_field(field: InstrumentedAttribute, srid: int) -> Label:
+        return ST_Transform(field, srid).label("geometry")
 
     def search(
             self,
@@ -114,120 +80,143 @@ class BoundaryService[S, G]:
             sort_by: schemas.SearchSortBy,
             sort_order: schemas.SearchSortOrder,
             request: schemas.BaseSearchRequest,
-            base_filter: filters.BaseFilter,
-    ) -> Page[Type[S]]:
-        query = self.select_func(self.base_columns)
+            boundaries_filter: filters.BaseFilter,
+            srid: Optional[int],
+    ) -> Page:
+        query = self._get_select_query(srid=srid)
 
-        query = base_filter.apply(request=request, db=db, query=query)
+        query = boundaries_filter.apply(request, db, query)
 
-        sort_by_field = operators.collate(getattr(self.model_class, sort_by), "NOCASE")
-
-        if sort_order == schemas.SearchSortOrder.desc:
-            sort_by_field = sort_by_field.desc()
-
-        query = query.order_by(sort_by_field)
-
+        # TODO implement sort order
+        # sort_by_field = operators.collate(getattr(self.model_class, sort_by), "NOCASE")
+        #
+        # if sort_order == schemas.SearchSortOrder.desc:
+        #     sort_by_field = sort_by_field.desc()
+        #
+        # query = query.order_by(sort_by_field)
         return paginate(db, query, unique=False)
 
+    def get_by_code(
+            self,
+            db: Session,
+            code: int,
+            srid: Optional[int] = None,
+    ) -> Row | None:
+        query = self._get_select_query(srid=srid)
+        query = self._filter_by_code(code=code, query=query)
 
-county_service = BoundaryService[schemas.County, schemas.CountyWithGeometry](
-    model_class=models.Counties,
-    additional_select_columns=[
-        models.Counties.area_ha,
-    ],
-    select_func=lambda columns: select(*columns).select_from(models.Counties),
-)
-
-municipalities_service = BoundaryService[schemas.Municipality, schemas.MunicipalityWithGeometry](
-    model_class=models.Municipalities,
-    additional_select_columns=[
-        models.Municipalities.area_ha,
-        _county_object,
-    ],
-    select_func=lambda columns: select(*columns).outerjoin_from(
-        models.Municipalities, models.Municipalities.county
-    ),
-)
-
-elderships_service = BoundaryService[schemas.Eldership, schemas.EldershipWithGeometry](
-    model_class=models.Elderships,
-    additional_select_columns=[
-        models.Elderships.area_ha,
-        _municipality_object,
-    ],
-    select_func=lambda columns: select(*columns).outerjoin_from(
-        models.Elderships, models.Elderships.municipality
-    ).outerjoin(models.Municipalities.county),
-)
-
-residential_areas_service = BoundaryService[schemas.ResidentialArea, schemas.ResidentialAreaWithGeometry](
-    model_class=models.ResidentialAreas,
-    additional_select_columns=[
-        models.ResidentialAreas.area_ha,
-        _municipality_object,
-    ],
-    select_func=lambda columns: select(*columns).outerjoin_from(
-        models.ResidentialAreas, models.ResidentialAreas.municipality
-    ).outerjoin(models.Municipalities.county),
-)
-
-streets_service = BoundaryService[schemas.Street, schemas.StreetWithGeometry](
-    model_class=models.Streets,
-    additional_select_columns=[
-        models.Streets.length_m,
-        models.Streets.full_name,
-        _residential_area_object,
-    ],
-    select_func=lambda columns: select(*columns).outerjoin_from(
-        models.Streets, models.Streets.residential_area
-    ).outerjoin(models.ResidentialAreas.municipality).outerjoin(models.Municipalities.county),
-)
+        return db.execute(query).first()
 
 
-class AddressesService:
-    @staticmethod
-    def _select_addresses(srid: int):
-        query = (select(
+class CountiesService(BaseBoundariesService):
+    def _get_select_query(self, srid: Optional[int]) -> Select:
+        columns = [
+                      models.Counties.code,
+                      models.Counties.feature_id,
+                      models.Counties.name,
+                      models.Counties.area_ha,
+                  ] + ([self._get_geometry_field(models.Counties.geom, srid)] if srid else [])
+
+        return select(*columns).select_from(models.Counties)
+
+    def _filter_by_code(self, query: Select, code: int) -> Select:
+        return query.filter(models.Counties.code == code)
+
+
+class MunicipalitiesService(BaseBoundariesService):
+    def _get_select_query(self, srid: Optional[int]) -> Select:
+        columns = [
+                      models.Municipalities.code,
+                      models.Municipalities.feature_id,
+                      models.Municipalities.name,
+                      models.Municipalities.area_ha,
+                      _county_object,
+                  ] + ([self._get_geometry_field(models.Municipalities.geom, srid)] if srid else [])
+
+        return select(*columns).outerjoin_from(
+            models.Municipalities, models.Municipalities.county
+        )
+
+    def _filter_by_code(self, query: Select, code: int) -> Select:
+        return query.filter(models.Municipalities.code == code)
+
+
+class EldershipsService(BaseBoundariesService):
+    def _get_select_query(self, srid: Optional[int]) -> Select:
+        columns = [
+                      models.Elderships.code,
+                      models.Elderships.feature_id,
+                      models.Elderships.name,
+                      models.Elderships.area_ha,
+                      _municipality_object,
+                  ] + ([self._get_geometry_field(models.Elderships.geom, srid)] if srid else [])
+
+        return select(*columns).outerjoin_from(
+            models.Elderships, models.Elderships.municipality
+        ).outerjoin(models.Municipalities.county)
+
+    def _filter_by_code(self, query: Select, code: int) -> Select:
+        return query.filter(models.Elderships.code == code)
+
+
+class ResidentialAreasService(BaseBoundariesService):
+    def _get_select_query(self, srid: Optional[int]) -> Select:
+        columns = [
+                      models.ResidentialAreas.code,
+                      models.ResidentialAreas.feature_id,
+                      models.ResidentialAreas.name,
+                      models.ResidentialAreas.area_ha,
+                      _municipality_object,
+
+                  ] + ([self._get_geometry_field(models.ResidentialAreas.geom, srid)] if srid else [])
+
+        return select(*columns).outerjoin_from(
+            models.ResidentialAreas, models.ResidentialAreas.municipality
+        ).outerjoin(models.Municipalities.county)
+
+    def _filter_by_code(self, query: Select, code: int) -> Select:
+        return query.filter(models.ResidentialAreas.code == code)
+
+
+class StreetsService(BaseBoundariesService):
+    def _get_select_query(self, srid: Optional[int]) -> Select:
+        columns = [
+                      models.Streets.code,
+                      models.Streets.feature_id,
+                      models.Streets.name,
+                      models.Streets.length_m,
+                      models.Streets.full_name,
+                      _residential_area_object,
+                  ] + ([self._get_geometry_field(models.Streets.geom, srid)] if srid else [])
+
+        return select(*columns).outerjoin_from(
+            models.Streets, models.Streets.residential_area
+        ).outerjoin(models.ResidentialAreas.municipality).outerjoin(models.Municipalities.county)
+
+    def _filter_by_code(self, query: Select, code: int) -> Select:
+        return query.filter(models.Streets.code == code)
+
+
+class AddressesService(BaseBoundariesService):
+    def _get_select_query(self, srid: Optional[int]) -> Select:
+        columns = [
             models.Addresses.feature_id,
             models.Addresses.code,
             models.Addresses.plot_or_building_number,
             models.Addresses.building_block_number,
             models.Addresses.postal_code,
-            ST_Transform(models.Addresses.geom, srid).label("geometry"),
             _flat_residential_area_object,
             _municipality_object,
-            _flat_street_object
-        ).select_from(models.Addresses)
-                 .outerjoin(models.Addresses.municipality)
-                 .outerjoin(models.Municipalities.county)
-                 .outerjoin(models.Addresses.street)
-                 .outerjoin(models.Addresses.residential_area)
-                 .order_by(models.Addresses.code.asc()))
+            _flat_street_object,
+            self._get_geometry_field(models.Addresses.geom, srid)
+        ]
 
-        return query
+        return select(columns).select_from(models.Addresses) \
+            .outerjoin(models.Addresses.municipality) \
+            .outerjoin(models.Municipalities.county) \
+            .outerjoin(models.Addresses.street) \
+            .outerjoin(models.Addresses.residential_area) \
+            .order_by(models.Addresses.code.asc())
 
-    @staticmethod
-    def search(
-            db: Session,
-            sort_by: schemas.SearchSortBy,
-            sort_order: schemas.SearchSortOrder,
-            request: schemas.AddressesSearchRequest,
-            addresses_filter: filters.AddressesFilter,
-            srid: int,
-    ):
-        query = AddressesService._select_addresses(srid=srid)
-
-        query = addresses_filter.apply(request, db, query)
-
-        return paginate(db, query, unique=False)
-
-    @staticmethod
-    def get(
-            db: Session,
-            code: int,
-            srid: int,
-    ) -> Row | None:
-        query = AddressesService._select_addresses(srid=srid)
-        query = query.filter(models.Addresses.code == code)
-
-        return db.execute(query).first()
+    def _filter_by_code(self, query: Select, code: int) -> Select:
+        return query.filter(models.Addresses.code == code)

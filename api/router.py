@@ -12,11 +12,10 @@ import database
 import schemas
 import service
 import filters
-from service import BoundaryService
 
 
 def create_boundaries_router(
-        boundary_service: BoundaryService,
+        service_class: type[service.BaseBoundariesService],
         filter_class: type[filters.BaseFilter],
         request_model: type[schemas.BaseSearchRequest],
         response_model: type[BaseModel],
@@ -42,13 +41,15 @@ def create_boundaries_router(
             sort_order: schemas.SearchSortOrder = Query(default=schemas.SearchSortOrder.asc),
             db: Session = Depends(database.get_db),
             boundaries_filter: filters.BaseFilter = Depends(filter_class),
+            boundaries_service: service.BaseBoundariesService = Depends(service_class),
     ):
-        return boundary_service.search(
+        return boundaries_service.search(
             db=db,
             sort_by=sort_by,
             sort_order=sort_order,
             request=request,
-            base_filter=boundaries_filter,
+            boundaries_filter=boundaries_filter,
+            srid=None
         )
 
     @router.get(
@@ -62,14 +63,15 @@ def create_boundaries_router(
         response_description=f"Details of the {item_name} with the specified code.",
         generate_unique_id_function=lambda route: f"{item_name_plural.replace(' ', '-')}-get"
     )
-    def get(
+    def get_by_code(
             code: int = Path(
                 description=f"The code of the {item_name} to retrieve",
                 example=example_code
             ),
             db: Session = Depends(database.get_db),
+            boundaries_service: service.BaseBoundariesService = Depends(service_class),
     ):
-        if item := boundary_service.get_without_geometry(db=db, code=code):
+        if item := boundaries_service.get_by_code(db=db, code=code):
             return item
         else:
             raise HTTPException(
@@ -101,8 +103,9 @@ def create_boundaries_router(
                 description="A spatial reference identifier (SRID) for geometry output. "
                             "For instance, 3346 is LKS, 4326 is for World Geodetic System 1984 (WGS 84)."
             ),
+            boundaries_service: service.BaseBoundariesService = Depends(service_class),
     ):
-        if row := boundary_service.get_with_geometry(db=db, code=code, srid=srid):
+        if row := boundaries_service.get_by_code(db=db, code=code, srid=srid):
             return row
         else:
             raise HTTPException(
@@ -175,15 +178,16 @@ def addresses_search(
                         "For instance, 3346 is LKS, 4326 is for World Geodetic System 1984 (WGS 84)."
         ),
         db: Session = Depends(database.get_db),
-        addresses_filter: filters.AddressesFilter = Depends(filters.AddressesFilter)
+        addresses_filter: filters.AddressesFilter = Depends(filters.AddressesFilter),
+        addresses_service: service.AddressesService = Depends(service.AddressesService),
 ):
-    return service.AddressesService.search(
+    return addresses_service.search(
         db,
         sort_by=sort_by,
         sort_order=sort_order,
         request=request,
         srid=srid,
-        addresses_filter=addresses_filter,
+        boundaries_filter=addresses_filter,
     )
 
 
@@ -210,11 +214,12 @@ def get(
                         "For instance, 3346 is LKS, 4326 is for World Geodetic System 1984 (WGS 84)."
         ),
         db: Session = Depends(database.get_db),
+        addresses_service: service.AddressesService = Depends(service.AddressesService),
 ):
-    if item := service.AddressesService.get(db=db, code=code, srid=srid):
+    if item := addresses_service.get_by_code(db=db, code=code, srid=srid):
         return item
     else:
         raise HTTPException(
             status_code=404,
-            detail="Not found",
+            detail="Address not found",
         )
