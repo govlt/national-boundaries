@@ -223,7 +223,7 @@ class AddressesService(BaseBoundariesService):
             self._get_geometry_field(models.Addresses.geom, srid)
         ]
 
-        return select(columns).select_from(models.Addresses) \
+        return select(*columns).select_from(models.Addresses) \
             .outerjoin(models.Addresses.municipality) \
             .outerjoin(models.Municipalities.county) \
             .outerjoin(models.Addresses.street) \
