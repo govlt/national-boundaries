@@ -61,6 +61,7 @@ _flat_street_object = func.json_object(
 
 
 class BaseBoundariesService(abc.ABC):
+    model_class: Type[models.BaseBoundaries]
 
     @abc.abstractmethod
     def _get_select_query(self, srid: Optional[int]) -> Select:
@@ -87,13 +88,12 @@ class BaseBoundariesService(abc.ABC):
 
         query = boundaries_filter.apply(request, db, query)
 
-        # TODO implement sort order
-        # sort_by_field = operators.collate(getattr(self.model_class, sort_by), "NOCASE")
-        #
-        # if sort_order == schemas.SearchSortOrder.desc:
-        #     sort_by_field = sort_by_field.desc()
-        #
-        # query = query.order_by(sort_by_field)
+        sort_by_field = operators.collate(getattr(self.model_class, sort_by), "NOCASE")
+
+        if sort_order == schemas.SearchSortOrder.desc:
+            sort_by_field = sort_by_field.desc()
+
+        query = query.order_by(sort_by_field)
         return paginate(db, query, unique=False)
 
     def get_by_code(
@@ -109,6 +109,8 @@ class BaseBoundariesService(abc.ABC):
 
 
 class CountiesService(BaseBoundariesService):
+    model_class = models.Counties
+
     def _get_select_query(self, srid: Optional[int]) -> Select:
         columns = [
                       models.Counties.code,
@@ -124,6 +126,8 @@ class CountiesService(BaseBoundariesService):
 
 
 class MunicipalitiesService(BaseBoundariesService):
+    model_class = models.Municipalities
+
     def _get_select_query(self, srid: Optional[int]) -> Select:
         columns = [
                       models.Municipalities.code,
@@ -142,6 +146,8 @@ class MunicipalitiesService(BaseBoundariesService):
 
 
 class EldershipsService(BaseBoundariesService):
+    model_class = models.Elderships
+
     def _get_select_query(self, srid: Optional[int]) -> Select:
         columns = [
                       models.Elderships.code,
@@ -160,6 +166,8 @@ class EldershipsService(BaseBoundariesService):
 
 
 class ResidentialAreasService(BaseBoundariesService):
+    model_class = models.ResidentialAreas
+
     def _get_select_query(self, srid: Optional[int]) -> Select:
         columns = [
                       models.ResidentialAreas.code,
@@ -179,6 +187,8 @@ class ResidentialAreasService(BaseBoundariesService):
 
 
 class StreetsService(BaseBoundariesService):
+    model_class = models.Streets
+
     def _get_select_query(self, srid: Optional[int]) -> Select:
         columns = [
                       models.Streets.code,
@@ -198,6 +208,8 @@ class StreetsService(BaseBoundariesService):
 
 
 class AddressesService(BaseBoundariesService):
+    model_class = models.Addresses
+
     def _get_select_query(self, srid: Optional[int]) -> Select:
         columns = [
             models.Addresses.feature_id,
