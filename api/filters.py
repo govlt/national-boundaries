@@ -12,8 +12,6 @@ import schemas
 
 
 class BaseFilter(ABC):
-    geom_field: type[InstrumentedAttribute]
-
     def apply(
             self,
             request: schemas.BaseSearchRequest,
@@ -58,9 +56,9 @@ class BaseFilter(ABC):
             query: Select,
     ) -> Select:
         filter_func_type = _get_filter_func(geometry_filter.method)
-        geom_field = getattr(self.geom_field, 'geom')
+        geom_field = self.Meta.geom_field
         if geom_field is None:
-            raise ValueError('Geometry field is not defined')
+            raise ValueError('geom_field in meta is not defined')
 
         if ewkb := geometry_filter.ewkb:
             query = _filter_by_geometry(
@@ -99,8 +97,6 @@ class BaseFilter(ABC):
 
 
 class CountiesFilter(BaseFilter):
-    geom_field = models.Counties.geom
-
     def apply(
             self,
             request: schemas.CountiesSearchRequest,
@@ -118,9 +114,11 @@ class CountiesFilter(BaseFilter):
 
         return query
 
+    class Meta:
+        geom_field = models.Counties.geom
+
 
 class MunicipalitiesFilter(CountiesFilter):
-    geom_field = models.Municipalities.geom
 
     def apply(
             self,
@@ -138,9 +136,11 @@ class MunicipalitiesFilter(CountiesFilter):
 
         return query
 
+    class Meta:
+        geom_field = models.Municipalities.geom
+
 
 class EldershipsFilter(MunicipalitiesFilter):
-    geom_field = models.Elderships.geom
 
     def apply(
             self,
@@ -157,10 +157,11 @@ class EldershipsFilter(MunicipalitiesFilter):
             )
         return query
 
+    class Meta:
+        geom_field = models.Elderships.geom
+
 
 class ResidentialAreasFilter(MunicipalitiesFilter):
-    geom_field = models.ResidentialAreas.geom
-
     def apply(
             self,
             request: schemas.ResidentialAreasSearchRequest,
@@ -177,10 +178,11 @@ class ResidentialAreasFilter(MunicipalitiesFilter):
 
         return query
 
+    class Meta:
+        geom_field = models.ResidentialAreas.geom
+
 
 class StreetsFilter(ResidentialAreasFilter):
-    geom_field = models.Streets.geom
-
     def apply(
             self,
             request: schemas.StreetsSearchRequest,
@@ -197,9 +199,11 @@ class StreetsFilter(ResidentialAreasFilter):
 
         return query
 
+    class Meta:
+        geom_field = models.Streets.geom
+
 
 class AddressesFilter(StreetsFilter):
-    geom_field = models.Addresses.geom
 
     def apply(
             self,
@@ -210,6 +214,9 @@ class AddressesFilter(StreetsFilter):
         query = super().apply(request, db, query)
 
         return query
+
+    class Meta:
+        geom_field = models.Addresses.geom
 
 
 def _is_valid_geometry(db: Session, geom: GenericFunction) -> bool:
