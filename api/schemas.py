@@ -105,17 +105,12 @@ class StreetWithGeometry(Street):
     geometry: Geometry = Field(description="Line geometry information of the street")
 
 
-class AddressLocation(BaseModel):
-    latitude: Optional[float] = Field(description="Latitude of the address")
-    longitude: Optional[float] = Field(description="Longitude of the address")
-
-
 class Address(BaseModel):
     code: int = Field(description="Unique code of the address")
     plot_or_building_number: str = Field(description="Plot or building number of the address")
     building_block_number: Optional[str] = Field(description="Plot or building number of the address", min_length=1)
     postal_code: str = Field(description="Postal code of the address")
-    location: AddressLocation = Field(description="Location of the address")
+    geometry: Geometry = Field(description="Point geometry of the address")
 
     street: Optional[FlatStreet] = Field(description="Street information the address belongs to")
     residential_area: Optional[FlatResidentialArea] = Field(
