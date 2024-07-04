@@ -225,8 +225,8 @@ def _filter_by_geometry(
         geom_value: str,
         field: str,
         geom_field: InstrumentedAttribute,
-        filter_func_type: type(GenericFunction),
-        geom_from_func_type: type(GenericFunction),
+        filter_func_type: type[GenericFunction],
+        geom_from_func_type: type[GenericFunction],
 ):
     geom = ST_Transform(geom_from_func_type(geom_value), 3346)
     if not _is_valid_geometry(db, geom):
@@ -235,7 +235,7 @@ def _filter_by_geometry(
     return query.where(filter_func_type(geom, geom_field))
 
 
-def _get_filter_func(filter_method: schemas.GeometryFilterMethod) -> type(GenericFunction):
+def _get_filter_func(filter_method: schemas.GeometryFilterMethod) -> type[GenericFunction]:
     match filter_method:
         case schemas.GeometryFilterMethod.intersects:
             return ST_Intersects
