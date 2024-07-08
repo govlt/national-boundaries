@@ -19,7 +19,6 @@ _county_object = func.json_object(
     text("'code', counties.code"),
     text("'name', counties.name"),
     text("'feature_id', counties.feature_id"),
-    text("'area_ha', counties.area_ha"),
     type_=JSONB,
 ).label("county")
 
@@ -27,7 +26,6 @@ _municipality_object = func.json_object(
     text("'code', municipalities.code"),
     text("'name', municipalities.name"),
     text("'feature_id', municipalities.feature_id"),
-    text("'area_ha', municipalities.area_ha"),
     "county", _county_object,
     type_=JSONB,
 ).label("municipality")
@@ -36,7 +34,6 @@ _flat_residential_area_object = func.json_object(
     text("'code', residential_areas.code"),
     text("'name', residential_areas.name"),
     text("'feature_id', residential_areas.feature_id"),
-    text("'area_ha', residential_areas.area_ha"),
     type_=JSONB,
 ).label("residential_area")
 
@@ -44,7 +41,6 @@ _residential_area_object = func.json_object(
     text("'code', residential_areas.code"),
     text("'name', residential_areas.name"),
     text("'feature_id', residential_areas.feature_id"),
-    text("'area_ha', residential_areas.area_ha"),
     "municipality", _municipality_object,
     type_=JSONB,
 ).label("residential_area")
@@ -54,7 +50,6 @@ _flat_street_object = func.json_object(
     text("'name', streets.name"),
     text("'full_name', streets.full_name"),
     text("'feature_id', streets.feature_id"),
-    text("'length_m', streets.length_m"),
     type_=JSONB,
 ).label("street")
 
