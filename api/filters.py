@@ -197,6 +197,13 @@ class StreetsFilter(ResidentialAreasFilter):
                 model_class=models.Streets
             )
 
+            if streets_filter.full_name:
+                query = _filter_by_string_field(
+                    string_filter=streets_filter.full_name,
+                    query=query,
+                    string_field=models.Streets.full_name
+                )
+
         return query
 
     class Meta:
@@ -210,10 +217,48 @@ class AddressesFilter(StreetsFilter):
             request: schemas.AddressesSearchRequest,
             db: Session,
             query: Select,
-    ):
-        query = super().apply(request, db, query)
+    ) -> Select:
+        address_query = super().apply(request, db, query)
+        if address_filter := request.addresses:
+            address_query = self._apply_streets_filters(address_filter, address_query)
 
-        return query
+        return address_query
+
+    @staticmethod
+    def _apply_streets_filters(
+            address_filter: schemas.AddressesFilter,
+            query: Select,
+    ) -> Select:
+        address_query = query
+
+        if address_filter.building_block_number:
+            address_query = _filter_by_string_field(
+                string_filter=address_filter.building_block_number,
+                query=address_query,
+                string_field=models.Addresses.building_block_number
+            )
+        if address_filter.plot_or_building_number:
+            address_query = _filter_by_string_field(
+                string_filter=address_filter.plot_or_building_number,
+                query=address_query,
+                string_field=models.Addresses.plot_or_building_number
+            )
+        if address_filter.postal_code:
+            address_query = _filter_by_string_field(
+                string_filter=address_filter.postal_code,
+                query=address_query,
+                string_field=models.Addresses.postal_code
+            )
+
+        feature_ids = address_filter.feature_ids
+        if feature_ids and len(address_filter.feature_ids) > 0:
+            address_query = address_query.filter(models.Addresses.feature_id).in_(feature_ids)
+
+        codes = address_filter.codes
+        if codes and len(codes) > 0:
+            address_query = address_query.filter(models.Addresses.code).in_(codes)
+
+        return address_query
 
     class Meta:
         geom_field = models.Addresses.geom
