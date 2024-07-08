@@ -10,6 +10,10 @@ services:
       - internal
     ports:
       - 9321:80
+    environment:
+      ROOT_URL: ''
+      SENTRY_DSN: ''
+      SENTRY_ENVIRONMENT: 'local'
 
 networks:
   internal:
