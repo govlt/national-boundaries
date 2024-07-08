@@ -219,6 +219,22 @@ class AddressesFilter(StreetsFilter):
         geom_field = models.Addresses.geom
 
 
+class RoomsFilter(StreetsFilter):
+
+    def apply(
+            self,
+            request: schemas.RoomsSearchRequest,
+            db: Session,
+            query: Select,
+    ):
+        query = super().apply(request, db, query)
+
+        return query
+
+    class Meta:
+        geom_field = models.Addresses.geom
+
+
 def _is_valid_geometry(db: Session, geom: GenericFunction) -> bool:
     try:
         return db.execute(ST_IsValid(geom)).scalar() == 1

@@ -237,7 +237,7 @@ rooms_router = APIRouter()
     generate_unique_id_function=lambda _: "rooms-search"
 )
 def rooms_search(
-        request: schemas.AddressesSearchRequest,
+        request: schemas.RoomsSearchRequest,
         sort_by: schemas.SearchSortBy = Query(default=schemas.SearchSortBy.code),
         sort_order: schemas.SearchSortOrder = Query(default=schemas.SearchSortOrder.asc),
         srid: int = Query(
@@ -247,7 +247,7 @@ def rooms_search(
                         "For instance, 3346 is LKS, 4326 is for World Geodetic System 1984 (WGS 84)."
         ),
         db: Session = Depends(database.get_db),
-        addresses_filter: filters.AddressesFilter = Depends(filters.AddressesFilter),
+        rooms_filter: filters.RoomsFilter = Depends(filters.RoomsFilter),
         service: services.RoomsService = Depends(services.RoomsService),
 ):
     return service.search(
@@ -256,5 +256,38 @@ def rooms_search(
         sort_order=sort_order,
         request=request,
         srid=srid,
-        boundaries_filter=addresses_filter,
+        boundaries_filter=rooms_filter,
     )
+
+@rooms_router.get(
+    "/{code}",
+    response_model=schemas.Rooms,
+    summary="Get room by code",
+    description="Retrieve a room by its unique code.",
+    responses={
+        404: {"description": "Room not found", "model": schemas.HTTPExceptionResponse},
+    },
+    response_description="Details of the room with the specified code.",
+    generate_unique_id_function=lambda route: "rooms-get"
+)
+def get(
+        code: int = Path(
+            description="The code of the room to retrieve",
+            example=194858325
+        ),
+        srid: int = Query(
+            3346,
+            example=4326,
+            description="A spatial reference identifier (SRID) for geometry output. "
+                        "For instance, 3346 is LKS, 4326 is for World Geodetic System 1984 (WGS 84)."
+        ),
+        db: Session = Depends(database.get_db),
+        service: services.RoomsService = Depends(services.RoomsService),
+):
+    if item := service.get_by_code(db=db, code=code, srid=srid):
+        return item
+    else:
+        raise HTTPException(
+            status_code=404,
+            detail="Room not found",
+        )
