@@ -175,6 +175,14 @@ class StringFilter(BaseModel):
         ],
     )
 
+    exact: Optional[str] = Field(
+        default=None,
+        description="Filter by exact string (case insensitive)",
+        examples=[
+            ""
+        ],
+    )
+
     starts: Optional[str] = Field(
         default=None,
         description="Filter by starting with a string (case insensitive)",
@@ -265,6 +273,19 @@ class AddressesFilter(BaseModel):
         ],
     )
 
+    plot_or_building_number: Optional[StringFilter] = Field(
+        default=None,
+        description="Filter by plot or building number"
+    )
+    building_block_number: Optional[StringFilter] = Field(
+        default=None,
+        description="Filter by building block number"
+    )
+    postal_code: Optional[StringFilter] = Field(
+        default=None,
+        description="Filter by postal code"
+    )
+
 
 class RoomsFilter(BaseModel):
     codes: Optional[List[int]] = Field(
@@ -274,10 +295,17 @@ class RoomsFilter(BaseModel):
             []
         ],
     )
+    room_number: Optional[StringFilter] = Field(
+        default=None,
+        description="Filter by room number",
+    )
 
 
 class StreetsFilter(GeneralBoundariesFilter):
-    pass
+    full_name: Optional[StringFilter] = Field(
+        default=None,
+        description="Filter by full name"
+    )
 
 
 class ResidentialAreasFilter(GeneralBoundariesFilter):

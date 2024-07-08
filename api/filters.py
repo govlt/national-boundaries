@@ -3,7 +3,7 @@ from abc import ABC
 from geoalchemy2.functions import ST_Intersects, ST_Transform, ST_GeomFromEWKT, ST_Contains, ST_IsValid
 from sqlalchemy import Select
 from sqlalchemy.orm import Session, InstrumentedAttribute
-from sqlalchemy.sql.functions import GenericFunction
+from sqlalchemy.sql.functions import GenericFunction, func
 from sqlean import OperationalError
 
 import database
@@ -197,6 +197,13 @@ class StreetsFilter(ResidentialAreasFilter):
                 model_class=models.Streets
             )
 
+            if streets_filter.full_name:
+                query = _filter_by_string_field(
+                    string_filter=streets_filter.full_name,
+                    query=query,
+                    string_field=models.Streets.full_name
+                )
+
         return query
 
     class Meta:
@@ -210,10 +217,48 @@ class AddressesFilter(StreetsFilter):
             request: schemas.AddressesSearchRequest,
             db: Session,
             query: Select,
-    ):
-        query = super().apply(request, db, query)
+    ) -> Select:
+        address_query = super().apply(request, db, query)
+        if address_filter := request.addresses:
+            address_query = self._apply_streets_filters(address_filter, address_query)
 
-        return query
+        return address_query
+
+    @staticmethod
+    def _apply_streets_filters(
+            address_filter: schemas.AddressesFilter,
+            query: Select,
+    ) -> Select:
+        address_query = query
+
+        if address_filter.building_block_number:
+            address_query = _filter_by_string_field(
+                string_filter=address_filter.building_block_number,
+                query=address_query,
+                string_field=models.Addresses.building_block_number
+            )
+        if address_filter.plot_or_building_number:
+            address_query = _filter_by_string_field(
+                string_filter=address_filter.plot_or_building_number,
+                query=address_query,
+                string_field=models.Addresses.plot_or_building_number
+            )
+        if address_filter.postal_code:
+            address_query = _filter_by_string_field(
+                string_filter=address_filter.postal_code,
+                query=address_query,
+                string_field=models.Addresses.postal_code
+            )
+
+        feature_ids = address_filter.feature_ids
+        if feature_ids and len(address_filter.feature_ids) > 0:
+            address_query = address_query.filter(models.Addresses.feature_id.in_(feature_ids))
+
+        codes = address_filter.codes
+        if codes and len(codes) > 0:
+            address_query = address_query.filter(models.Addresses.code.in_(codes))
+
+        return address_query
 
     class Meta:
         geom_field = models.Addresses.geom
@@ -229,7 +274,29 @@ class RoomsFilter(StreetsFilter):
     ):
         query = super().apply(request, db, query)
 
+        if room_filter := request.rooms:
+            query = self._apply_rooms_filters(room_filter, query)
+
         return query
+
+    @staticmethod
+    def _apply_rooms_filters(
+            rooms_filter: schemas.RoomsFilter,
+            query: Select,
+    ) -> Select:
+        rooms_query = query
+
+        if rooms_filter.room_number:
+            rooms_query = _filter_by_string_field(
+                string_filter=rooms_filter.room_number,
+                query=rooms_query,
+                string_field=models.Rooms.room_number
+            )
+        codes = rooms_filter.codes
+        if codes and len(codes) > 0:
+            rooms_query = rooms_query.filter(models.Rooms.code.in_(codes))
+
+        return rooms_query
 
     class Meta:
         geom_field = models.Addresses.geom
@@ -273,10 +340,12 @@ def _filter_by_string_field(
         query: Select,
         string_field: InstrumentedAttribute
 ) -> Select:
-    if string_filter.contains:
-        query = query.filter(string_field.icontains(string_filter.contains))
-    if string_filter.starts:
+    if string_filter.exact:
+        query = query.filter(func.lower(string_field) == string_filter.exact.lower())
+    elif string_filter.starts:
         query = query.filter(string_field.istartswith(string_filter.starts))
+    elif string_filter.contains:
+        query = query.filter(string_field.icontains(string_filter.contains))
 
     return query
 
