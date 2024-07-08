@@ -175,6 +175,14 @@ class StringFilter(BaseModel):
         ],
     )
 
+    exact: Optional[str] = Field(
+        default=None,
+        description="Filter by exact string (case insensitive)",
+        examples=[
+            ""
+        ],
+    )
+
     starts: Optional[str] = Field(
         default=None,
         description="Filter by starting with a string (case insensitive)",

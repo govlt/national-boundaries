@@ -3,7 +3,7 @@ from abc import ABC
 from geoalchemy2.functions import ST_Intersects, ST_Transform, ST_GeomFromEWKT, ST_Contains, ST_IsValid
 from sqlalchemy import Select
 from sqlalchemy.orm import Session, InstrumentedAttribute
-from sqlalchemy.sql.functions import GenericFunction
+from sqlalchemy.sql.functions import GenericFunction, func
 from sqlean import OperationalError
 
 import database
@@ -273,10 +273,12 @@ def _filter_by_string_field(
         query: Select,
         string_field: InstrumentedAttribute
 ) -> Select:
-    if string_filter.contains:
-        query = query.filter(string_field.icontains(string_filter.contains))
-    if string_filter.starts:
+    if string_filter.exact:
+        query = query.filter(func.lower(string_field) == string_filter.exact.lower())
+    elif string_filter.starts:
         query = query.filter(string_field.istartswith(string_filter.starts))
+    elif string_filter.contains:
+        query = query.filter(string_field.icontains(string_filter.contains))
 
     return query
 
