@@ -252,11 +252,11 @@ class AddressesFilter(StreetsFilter):
 
         feature_ids = address_filter.feature_ids
         if feature_ids and len(address_filter.feature_ids) > 0:
-            address_query = address_query.filter(models.Addresses.feature_id).in_(feature_ids)
+            address_query = address_query.filter(models.Addresses.feature_id.in_(feature_ids))
 
         codes = address_filter.codes
         if codes and len(codes) > 0:
-            address_query = address_query.filter(models.Addresses.code).in_(codes)
+            address_query = address_query.filter(models.Addresses.code.in_(codes))
 
         return address_query
 
@@ -274,7 +274,29 @@ class RoomsFilter(StreetsFilter):
     ):
         query = super().apply(request, db, query)
 
+        if room_filter := request.rooms:
+            query = self._apply_rooms_filters(room_filter, query)
+
         return query
+
+    @staticmethod
+    def _apply_rooms_filters(
+            rooms_filter: schemas.RoomsFilter,
+            query: Select,
+    ) -> Select:
+        rooms_query = query
+
+        if rooms_filter.room_number:
+            rooms_query = _filter_by_string_field(
+                string_filter=rooms_filter.room_number,
+                query=rooms_query,
+                string_field=models.Rooms.room_number
+            )
+        codes = rooms_filter.codes
+        if codes and len(codes) > 0:
+            rooms_query = rooms_query.filter(models.Rooms.code.in_(codes))
+
+        return rooms_query
 
     class Meta:
         geom_field = models.Addresses.geom

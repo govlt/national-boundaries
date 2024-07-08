@@ -295,6 +295,10 @@ class RoomsFilter(BaseModel):
             []
         ],
     )
+    room_number: Optional[StringFilter] = Field(
+        default=None,
+        description="Filter by room number",
+    )
 
 
 class StreetsFilter(GeneralBoundariesFilter):
