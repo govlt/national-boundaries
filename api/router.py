@@ -1,11 +1,11 @@
 from fastapi import HTTPException, APIRouter, Depends, Path
 from fastapi.params import Query
-from fastapi_pagination import Page
 from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from starlette import status
+from fastapi_pagination.cursor import CursorPage
 
 import database
 import filters
@@ -27,7 +27,7 @@ def create_boundaries_router(
 
     @router.post(
         "/search",
-        response_model=Page[response_model],
+        response_model=CursorPage[response_model],
         summary=f"Search for {item_name_plural} with pagination using various filters",
         description=f"Search for {item_name_plural} with pagination using various filters such as {item_name} codes, "
                     f"feature IDs, name. Additionally, you can filter by GeoJson, EWKT geometry",
@@ -159,7 +159,7 @@ addresses_router = APIRouter()
 
 @addresses_router.post(
     "/search",
-    response_model=Page[schemas.Address],
+    response_model=CursorPage[schemas.Address],
     summary="Search for address with pagination using various filters",
     description="Search for addresses with pagination using various filters such as address codes, "
                 "feature IDs, name. Additionally, you can filter by GeoJson, EWKT geometry",
@@ -229,7 +229,7 @@ rooms_router = APIRouter()
 
 @rooms_router.post(
     "/search",
-    response_model=Page[schemas.Rooms],
+    response_model=CursorPage[schemas.Rooms],
     summary="Search for rooms with pagination using various filters",
     description="Search for rooms with pagination using various filters such as address codes, "
                 "feature IDs, name. Additionally, you can filter by GeoJson, EWKT geometry",

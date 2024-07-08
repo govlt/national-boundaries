@@ -99,8 +99,8 @@ class BaseBoundariesService(abc.ABC):
         if sort_order == schemas.SearchSortOrder.desc:
             sort_by_field = sort_by_field.desc()
 
-        query = query.order_by(sort_by_field)
-        return paginate(db, query, unique=False)
+        query = query.order_by(sort_by_field, self.model_class.code.asc())
+        return paginate(db, query)
 
     def get_by_code(
             self,
