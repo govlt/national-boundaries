@@ -1,3 +1,4 @@
+import datetime
 import enum
 from typing import Optional, List
 
@@ -32,6 +33,7 @@ class ShortCounty(BaseModel):
 
 class County(ShortCounty):
     area_ha: float = Field(description="Area of the county in hectares")
+    created_at: datetime.date = Field(description="Date of creation of the county")
 
     class Config:
         from_attributes = True
@@ -53,6 +55,7 @@ class ShortMunicipality(BaseModel):
 
 class Municipality(ShortMunicipality):
     area_ha: float = Field(description="Area of the municipality in hectares")
+    created_at: datetime.date = Field(description="Date of creation of the municipality")
 
     class Config:
         from_attributes = True
@@ -68,6 +71,7 @@ class Eldership(BaseModel):
     feature_id: int = Field(description="Feature ID of the eldership")
     area_ha: float = Field(description="Area of the eldership in hectares")
     municipality: ShortMunicipality = Field(description="Municipality information the eldership belongs to")
+    created_at: datetime.date = Field(description="Date of creation of the eldership")
 
     class Config:
         from_attributes = True
@@ -92,6 +96,7 @@ class ShortResidentialArea(FlatResidentialArea):
 
 class ResidentialArea(ShortResidentialArea):
     area_ha: float = Field(description="Area of the residential area in hectares")
+    created_at: datetime.date = Field(description="Date of creation of the residential area")
 
 
 class ResidentialAreaWithGeometry(ResidentialArea):
@@ -110,6 +115,7 @@ class FlatStreet(BaseModel):
 
 class Street(FlatStreet):
     length_m: float = Field(description="The total length of the street in meters")
+    created_at: datetime.date = Field(description="Date of creation of the street")
     residential_area: ShortResidentialArea = Field(description="Residential area information the street belongs to")
 
     class Config:
@@ -141,7 +147,7 @@ class Address(ShortAddress):
 class Rooms(BaseModel):
     code: int = Field(description="Unique code of the room")
     room_number: str = Field(description="Room number in the building or building section")
-    created_at: str = Field(description="Date when the room address was created")
+    created_at: datetime.date = Field(description="Date of creation of the room address")
     geometry: Geometry = Field(description="Point geometry of the address")
     address: ShortAddress = Field(description="Address of the room")
 
