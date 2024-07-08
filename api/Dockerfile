@@ -40,12 +40,14 @@ ENV VIRTUAL_ENV=/app/.venv \
     PATH="/app/.venv/bin:$PATH" \
     SPATIALITE_LIBRARY_PATH=mod_spatialite.so \
     SENTRY_DSN="" \
-    SENTRY_ENVIRONMENT="production"
-
+    SENTRY_ENVIRONMENT="production" \
+    ROOT_URL=""
 
 COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 COPY . .
+COPY --chmod=555 entrypoint.sh /opt/app/entrypoint.sh
 
 COPY --from=database-builder --chmod=444 /opt/database/boundaries.sqlite /opt/database/data-sources/checksums.txt ./
 
-CMD ["fastapi", "run", "main.py", "--port", "80"]
+
+ENTRYPOINT ["/opt/app/entrypoint.sh"]
