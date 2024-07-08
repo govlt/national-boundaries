@@ -87,6 +87,13 @@ ogrinfo -sql "CREATE INDEX addresses_municipality_code ON addresses(municipality
 ogrinfo -sql "CREATE INDEX addresses_residential_area_code ON addresses(residential_area_code)" boundaries.sqlite
 ogrinfo -sql "CREATE INDEX addresses_street_code ON addresses(street_code)" boundaries.sqlite
 
+echo "Importing rooms"
+curl -f -L --max-redirs 5 -o data-sources/rooms.psv https://www.registrucentras.lt/aduomenys/?byla=adr_pat_lr.csv
+calculate_md5 data-sources/rooms.psv >> data-sources/checksums.txt
+ogr2ogr -append -f SQLite boundaries.sqlite data-sources/rooms.psv -lco FID=code \
+  -sql "SELECT CAST(PAT_KODAS AS integer(8)) as code, CAST(AOB_KODAS AS integer(8)) AS address_code, PATALPOS_NR AS room_number, PAT_NUO AS created_at FROM rooms"
+ogrinfo -sql "CREATE INDEX rooms_address_code ON rooms(address_code)" boundaries.sqlite
+
 echo "Finalizing SQLite database"
 ogrinfo boundaries.sqlite -sql "VACUUM"
 

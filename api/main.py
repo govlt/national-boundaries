@@ -124,6 +124,12 @@ app.include_router(
     tags=["addresses"],
 )
 
+app.include_router(
+    router.rooms_router,
+    prefix="/v1/rooms",
+    tags=["rooms"],
+)
+
 app.include_router(router.health_check_router)
 
 

@@ -58,6 +58,18 @@ _flat_street_object = func.json_object(
     type_=JSONB,
 ).label("street")
 
+_address_short_object = func.json_object(
+    text("'code', addresses.code"),
+    text("'feature_id', addresses.feature_id"),
+    text("'plot_or_building_number', addresses.plot_or_building_number"),
+    text("'building_block_number', addresses.building_block_number"),
+    text("'postal_code', addresses.postal_code"),
+    "residential_area", _flat_residential_area_object,
+    "municipality", _municipality_object,
+    "street", _flat_street_object,
+    type_=JSONB,
+).label("address")
+
 
 class BaseBoundariesService(abc.ABC):
     model_class: Type[models.BaseBoundaries]
@@ -226,8 +238,29 @@ class AddressesService(BaseBoundariesService):
             .outerjoin(models.Addresses.municipality) \
             .outerjoin(models.Municipalities.county) \
             .outerjoin(models.Addresses.street) \
-            .outerjoin(models.Addresses.residential_area) \
-            .order_by(models.Addresses.code.asc())
+            .outerjoin(models.Addresses.residential_area)
 
     def _filter_by_code(self, query: Select, code: int) -> Select:
         return query.filter(models.Addresses.code == code)
+
+
+class RoomsService(BaseBoundariesService):
+    model_class = models.Rooms
+
+    def _get_select_query(self, srid: Optional[int]) -> Select:
+        columns = [
+                      models.Rooms.code,
+                      models.Rooms.room_number,
+                      models.Rooms.created_at,
+                      _address_short_object,
+                  ] + ([self._get_geometry_field(models.Addresses.geom, srid)] if srid else [])
+
+        return select(*columns).select_from(models.Rooms) \
+            .outerjoin(models.Rooms.address) \
+            .outerjoin(models.Addresses.municipality) \
+            .outerjoin(models.Municipalities.county) \
+            .outerjoin(models.Addresses.street) \
+            .outerjoin(models.Addresses.residential_area)
+
+    def _filter_by_code(self, query: Select, code: int) -> Select:
+        return query.filter(models.Rooms.code == code)
