@@ -1,3 +1,4 @@
+import datetime
 import enum
 from typing import Optional, List
 
@@ -21,11 +22,18 @@ class Geometry(BaseModel):
     data: str = Field(description="Geometry data in WKB (Well-Known Binary) format, represented as a hex string")
 
 
-class County(BaseModel):
+class ShortCounty(BaseModel):
     code: int = Field(description="Unique code of the county")
-    name: str = Field(description="Name of the county")
     feature_id: int = Field(description="Feature ID of the county")
+    name: str = Field(description="Name of the county")
+
+    class Config:
+        from_attributes = True
+
+
+class County(ShortCounty):
     area_ha: float = Field(description="Area of the county in hectares")
+    created_at: datetime.date = Field(description="Date of creation of the county")
 
     class Config:
         from_attributes = True
@@ -35,12 +43,19 @@ class CountyWithGeometry(County):
     geometry: Geometry = Field(description="Geometry information of the county")
 
 
-class Municipality(BaseModel):
+class ShortMunicipality(BaseModel):
     code: int = Field(description="Unique code of the municipality")
-    name: str = Field(description="Name of the municipality")
     feature_id: int = Field(description="Feature ID of the municipality")
+    name: str = Field(description="Name of the municipality")
+    county: ShortCounty = Field(description="County information the municipality belongs to")
+
+    class Config:
+        from_attributes = True
+
+
+class Municipality(ShortMunicipality):
     area_ha: float = Field(description="Area of the municipality in hectares")
-    county: County = Field(description="County information the municipality belongs to")
+    created_at: datetime.date = Field(description="Date of creation of the municipality")
 
     class Config:
         from_attributes = True
@@ -55,7 +70,8 @@ class Eldership(BaseModel):
     name: str = Field(description="Name of the eldership")
     feature_id: int = Field(description="Feature ID of the eldership")
     area_ha: float = Field(description="Area of the eldership in hectares")
-    municipality: Municipality = Field(description="Municipality information the eldership belongs to")
+    municipality: ShortMunicipality = Field(description="Municipality information the eldership belongs to")
+    created_at: datetime.date = Field(description="Date of creation of the eldership")
 
     class Config:
         from_attributes = True
@@ -67,16 +83,20 @@ class EldershipWithGeometry(Eldership):
 
 class FlatResidentialArea(BaseModel):
     code: int = Field(description="Unique code of the residential area")
-    name: str = Field(description="Name of the residential area")
     feature_id: int = Field(description="Feature ID of the residential area")
-    area_ha: float = Field(description="Area of the residential area in hectares")
+    name: str = Field(description="Name of the residential area")
 
     class Config:
         from_attributes = True
 
 
-class ResidentialArea(FlatResidentialArea):
-    municipality: Municipality = Field(description="Municipality information the residential area belongs to")
+class ShortResidentialArea(FlatResidentialArea):
+    municipality: ShortMunicipality = Field(description="Municipality information the residential area belongs to")
+
+
+class ResidentialArea(ShortResidentialArea):
+    area_ha: float = Field(description="Area of the residential area in hectares")
+    created_at: datetime.date = Field(description="Date of creation of the residential area")
 
 
 class ResidentialAreaWithGeometry(ResidentialArea):
@@ -85,17 +105,18 @@ class ResidentialAreaWithGeometry(ResidentialArea):
 
 class FlatStreet(BaseModel):
     code: int = Field(description="Unique code of the street")
+    feature_id: int = Field(description="Feature ID of the street")
     name: str = Field(description="Name of the street")
     full_name: str = Field(description="The full name of the street, including its type")
-    feature_id: int = Field(description="Feature ID of the street")
-    length_m: float = Field(description="The total length of the street in meters")
 
     class Config:
         from_attributes = True
 
 
 class Street(FlatStreet):
-    residential_area: ResidentialArea = Field(description="Residential area information the street belongs to")
+    length_m: float = Field(description="The total length of the street in meters")
+    created_at: datetime.date = Field(description="Date of creation of the street")
+    residential_area: ShortResidentialArea = Field(description="Residential area information the street belongs to")
 
     class Config:
         from_attributes = True
@@ -116,7 +137,7 @@ class ShortAddress(BaseModel):
     residential_area: Optional[FlatResidentialArea] = Field(
         description="Residential area information the address belongs to",
     )
-    municipality: Municipality = Field(description="Municipality information the address belongs to")
+    municipality: ShortMunicipality = Field(description="Municipality information the address belongs to")
 
 
 class Address(ShortAddress):
@@ -126,7 +147,7 @@ class Address(ShortAddress):
 class Rooms(BaseModel):
     code: int = Field(description="Unique code of the room")
     room_number: str = Field(description="Room number in the building or building section")
-    created_at: str = Field(description="Date when the room address was created")
+    created_at: datetime.date = Field(description="Date of creation of the room address")
     geometry: Geometry = Field(description="Point geometry of the address")
     address: ShortAddress = Field(description="Address of the room")
 

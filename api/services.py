@@ -19,7 +19,6 @@ _county_object = func.json_object(
     text("'code', counties.code"),
     text("'name', counties.name"),
     text("'feature_id', counties.feature_id"),
-    text("'area_ha', counties.area_ha"),
     type_=JSONB,
 ).label("county")
 
@@ -27,7 +26,6 @@ _municipality_object = func.json_object(
     text("'code', municipalities.code"),
     text("'name', municipalities.name"),
     text("'feature_id', municipalities.feature_id"),
-    text("'area_ha', municipalities.area_ha"),
     "county", _county_object,
     type_=JSONB,
 ).label("municipality")
@@ -36,7 +34,6 @@ _flat_residential_area_object = func.json_object(
     text("'code', residential_areas.code"),
     text("'name', residential_areas.name"),
     text("'feature_id', residential_areas.feature_id"),
-    text("'area_ha', residential_areas.area_ha"),
     type_=JSONB,
 ).label("residential_area")
 
@@ -44,7 +41,6 @@ _residential_area_object = func.json_object(
     text("'code', residential_areas.code"),
     text("'name', residential_areas.name"),
     text("'feature_id', residential_areas.feature_id"),
-    text("'area_ha', residential_areas.area_ha"),
     "municipality", _municipality_object,
     type_=JSONB,
 ).label("residential_area")
@@ -54,7 +50,6 @@ _flat_street_object = func.json_object(
     text("'name', streets.name"),
     text("'full_name', streets.full_name"),
     text("'feature_id', streets.feature_id"),
-    text("'length_m', streets.length_m"),
     type_=JSONB,
 ).label("street")
 
@@ -128,6 +123,8 @@ class CountiesService(BaseBoundariesService):
                       models.Counties.feature_id,
                       models.Counties.name,
                       models.Counties.area_ha,
+                      models.Counties.area_ha,
+                      models.Counties.created_at,
                   ] + ([self._get_geometry_field(models.Counties.geom, srid)] if srid else [])
 
         return select(*columns).select_from(models.Counties)
@@ -145,6 +142,7 @@ class MunicipalitiesService(BaseBoundariesService):
                       models.Municipalities.feature_id,
                       models.Municipalities.name,
                       models.Municipalities.area_ha,
+                      models.Municipalities.created_at,
                       _county_object,
                   ] + ([self._get_geometry_field(models.Municipalities.geom, srid)] if srid else [])
 
@@ -165,6 +163,7 @@ class EldershipsService(BaseBoundariesService):
                       models.Elderships.feature_id,
                       models.Elderships.name,
                       models.Elderships.area_ha,
+                      models.Elderships.created_at,
                       _municipality_object,
                   ] + ([self._get_geometry_field(models.Elderships.geom, srid)] if srid else [])
 
@@ -185,8 +184,8 @@ class ResidentialAreasService(BaseBoundariesService):
                       models.ResidentialAreas.feature_id,
                       models.ResidentialAreas.name,
                       models.ResidentialAreas.area_ha,
+                      models.ResidentialAreas.created_at,
                       _municipality_object,
-
                   ] + ([self._get_geometry_field(models.ResidentialAreas.geom, srid)] if srid else [])
 
         return select(*columns).outerjoin_from(
@@ -207,6 +206,7 @@ class StreetsService(BaseBoundariesService):
                       models.Streets.name,
                       models.Streets.length_m,
                       models.Streets.full_name,
+                      models.Streets.created_at,
                       _residential_area_object,
                   ] + ([self._get_geometry_field(models.Streets.geom, srid)] if srid else [])
 
@@ -228,6 +228,7 @@ class AddressesService(BaseBoundariesService):
             models.Addresses.plot_or_building_number,
             models.Addresses.building_block_number,
             models.Addresses.postal_code,
+            models.Addresses.created_at,
             _flat_residential_area_object,
             _municipality_object,
             _flat_street_object,
