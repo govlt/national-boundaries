@@ -222,3 +222,39 @@ def get(
             status_code=404,
             detail="Address not found",
         )
+
+
+rooms_router = APIRouter()
+
+
+@rooms_router.post(
+    "/search",
+    response_model=Page[schemas.Rooms],
+    summary="Search for rooms with pagination using various filters",
+    description="Search for rooms with pagination using various filters such as address codes, "
+                "feature IDs, name. Additionally, you can filter by GeoJson, EWKT geometry",
+    response_description="A paginated list of rooms matching the search criteria.",
+    generate_unique_id_function=lambda _: "rooms-search"
+)
+def rooms_search(
+        request: schemas.AddressesSearchRequest,
+        sort_by: schemas.SearchSortBy = Query(default=schemas.SearchSortBy.code),
+        sort_order: schemas.SearchSortOrder = Query(default=schemas.SearchSortOrder.asc),
+        srid: int = Query(
+            3346,
+            example=4326,
+            description="A spatial reference identifier (SRID) for geometry output. "
+                        "For instance, 3346 is LKS, 4326 is for World Geodetic System 1984 (WGS 84)."
+        ),
+        db: Session = Depends(database.get_db),
+        addresses_filter: filters.AddressesFilter = Depends(filters.AddressesFilter),
+        service: services.RoomsService = Depends(services.RoomsService),
+):
+    return service.search(
+        db,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        request=request,
+        srid=srid,
+        boundaries_filter=addresses_filter,
+    )

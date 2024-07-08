@@ -8,7 +8,7 @@ class SearchSortBy(enum.StrEnum):
     code = 'code'
     name = 'name'
     feature_id = 'feature_id'
-    area_ha = 'area_ha'
+    created_at = 'created_at'
 
 
 class SearchSortOrder(str, enum.Enum):
@@ -118,6 +118,12 @@ class Address(BaseModel):
         description="Residential area information the address belongs to",
     )
     municipality: Municipality = Field(description="Municipality information the address belongs to")
+
+
+class Rooms(BaseModel):
+    code: int = Field(description="Unique code of the room")
+    room_number: str = Field(description="Room number in the building or building section")
+    created_at: str = Field(description="Date when the room address was created")
 
 
 class HealthCheck(BaseModel):

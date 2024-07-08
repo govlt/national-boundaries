@@ -231,3 +231,20 @@ class AddressesService(BaseBoundariesService):
 
     def _filter_by_code(self, query: Select, code: int) -> Select:
         return query.filter(models.Addresses.code == code)
+
+
+class RoomsService(BaseBoundariesService):
+    model_class = models.Rooms
+
+    def _get_select_query(self, srid: Optional[int]) -> Select:
+        columns = [
+            models.Rooms.code,
+            models.Rooms.room_number,
+            models.Rooms.created_at,
+        ]
+
+        return select(*columns).select_from(models.Rooms) \
+            .outerjoin(models.Rooms.address)
+
+    def _filter_by_code(self, query: Select, code: int) -> Select:
+        return query.filter(models.Rooms.code == code)

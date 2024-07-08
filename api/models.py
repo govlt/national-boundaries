@@ -86,3 +86,16 @@ class Addresses(Base):
 
     street_code = Column(Integer, ForeignKey("streets.code"), nullable=True)
     street = relationship("Streets", back_populates="addresses")
+
+    rooms = relationship("Rooms", back_populates="address")
+
+
+class Rooms(Base):
+    __tablename__ = "rooms"
+
+    code = Column(Integer, primary_key=True)
+    room_number = Column(String, nullable=False)
+    created_at = Column(String, nullable=False)
+
+    address_code = Column(Integer, ForeignKey("addresses.code"))
+    address = relationship("Addresses", back_populates="rooms")
