@@ -26,10 +26,10 @@ if SENTRY_DSN := os.environ.get("SENTRY_DSN"):
 app = FastAPI(
     title="National Boundaries API",
     summary="Provides data about the national boundaries of Lithuania",
-    description='Interactive Swagger console can be found <a href="/docs">here</a>.',
+    description='ReDoc style documentation can be found <a href="/redoc">here</a>.',
     version="0.0.1",
     terms_of_service="https://www.registrucentras.lt/p/1187",
-    redoc_url="/",
+    docs_url="/",
     contact={
         "name": "Karolis Vyčius",
         "url": "https://vycius.lt/",
