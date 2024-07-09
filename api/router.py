@@ -167,10 +167,20 @@ addresses_router = APIRouter()
     description="Search for addresses with pagination using various filters such as address codes, "
                 "feature IDs, name. Additionally, you can filter by GeoJson, EWKT geometry",
     response_description="A paginated list of addresses matching the search criteria.",
-    generate_unique_id_function=lambda _: "addresses-search"
+    generate_unique_id_function=lambda _: "addresses-search",
 )
 def addresses_search(
-        request: schemas.AddressesSearchRequest,
+        request: Annotated[
+            schemas.AddressesSearchRequest,
+            Body(openapi_examples={
+                **constants.openapi_examples_addresses_filtering,
+                **constants.openapi_examples_streets_filtering,
+                **constants.openapi_examples_residential_areas_filtering,
+                **constants.openapi_examples_municipalities_filtering,
+                **constants.openapi_examples_counties_filtering,
+                **constants.openapi_examples_geometry_filtering,
+            })
+        ],
         sort_by: schemas.SearchSortBy = Query(default=schemas.SearchSortBy.code),
         sort_order: schemas.SearchSortOrder = Query(default=schemas.SearchSortOrder.asc),
         srid: int = constants.query_srid,
@@ -232,7 +242,18 @@ rooms_router = APIRouter()
     generate_unique_id_function=lambda _: "rooms-search"
 )
 def rooms_search(
-        request: schemas.RoomsSearchRequest,
+        request: Annotated[
+            schemas.RoomsSearchRequest,
+            Body(openapi_examples={
+                **constants.openapi_examples_rooms_filtering,
+                **constants.openapi_examples_addresses_filtering,
+                **constants.openapi_examples_streets_filtering,
+                **constants.openapi_examples_residential_areas_filtering,
+                **constants.openapi_examples_municipalities_filtering,
+                **constants.openapi_examples_counties_filtering,
+                **constants.openapi_examples_geometry_filtering,
+            })
+        ],
         sort_by: schemas.SearchSortBy = Query(default=schemas.SearchSortBy.code),
         sort_order: schemas.SearchSortOrder = Query(default=schemas.SearchSortOrder.asc),
         srid: int = constants.query_srid,

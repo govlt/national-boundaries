@@ -324,3 +324,168 @@ openapi_examples_streets_filtering: Dict[str, Example] = {
         }
     }
 }
+
+openapi_examples_addresses_filtering: Dict[str, Example] = {
+    "example_addresses_codes": {
+        "summary": "Filter by address codes",
+        "description": "Retrieve data for addresses by specifying address codes.",
+        "value": {
+            "addresses": {
+                "codes": [157385248, 156657369]
+            }
+        }
+    },
+    "example_addresses_feature_ids": {
+        "summary": "Filter by address feature IDs",
+        "description": "Retrieve data for addresses by specifying feature IDs.",
+        "value": {
+            "addresses": {
+                "feature_ids": [115834, 174273]
+            }
+        }
+    },
+    "example_plot_or_building_number_contains": {
+        "summary": "Filter by address plot or building number containing substring",
+        "description": "Retrieve data for addresses where plot or building number contains the specified substring.",
+        "value": {
+            "addresses": {
+                "plot_or_building_number": {
+                    "contains": "A"
+                }
+            }
+        }
+    },
+    "example_plot_or_building_number_exact": {
+        "summary": "Filter by address exact plot or building number",
+        "description": "Retrieve data for addresses matching the exact plot or building number.",
+        "value": {
+            "addresses": {
+                "plot_or_building_number": {
+                    "exact": "21"
+                }
+            }
+        }
+    },
+    "example_plot_or_building_number_starts": {
+        "summary": "Filter by address plot or building number starting with prefix",
+        "description": "Retrieve data for addresses where plot or building number starts with the specified prefix.",
+        "value": {
+            "addresses": {
+                "plot_or_building_number": {
+                    "starts": "21"
+                }
+            }
+        }
+    },
+    "example_building_block_number_contains": {
+        "summary": "Filter by address building block number containing substring",
+        "description": "Retrieve data for addresses where building block number contains the specified substring.",
+        "value": {
+            "addresses": {
+                "building_block_number": {
+                    "contains": "A"
+                }
+            }
+        }
+    },
+    "example_building_block_number_exact": {
+        "summary": "Filter by address exact building block number",
+        "description": "Retrieve data for addresses matching the exact building block number.",
+        "value": {
+            "addresses": {
+                "building_block_number": {
+                    "exact": "9"
+                }
+            }
+        }
+    },
+    "example_building_block_number_starts": {
+        "summary": "Filter by address building block number starting with prefix",
+        "description": "Retrieve data for addresses where building block number starts with the specified prefix.",
+        "value": {
+            "addresses": {
+                "building_block_number": {
+                    "starts": "9"
+                }
+            }
+        }
+    },
+    "example_postal_code_contains": {
+        "summary": "Filter by address postal code containing substring",
+        "description": "Retrieve data for addresses where postal codes contain the specified substring.",
+        "value": {
+            "addresses": {
+                "postal_code": {
+                    "contains": "36128"
+                }
+            }
+        }
+    },
+    "example_postal_code_exact": {
+        "summary": "Filter by address exact postal code",
+        "description": "Retrieve data for addresses matching the exact postal code.",
+        "value": {
+            "addresses": {
+                "postal_code": {
+                    "exact": "LT-36128"
+                }
+            }
+        }
+    },
+    "example_postal_code_starts": {
+        "summary": "Filter by address postal code starting with prefix",
+        "description": "Retrieve data for addresses where postal codes start with the specified prefix.",
+        "value": {
+            "addresses": {
+                "postal_code": {
+                    "starts": "LT-361"
+                }
+            }
+        }
+    }
+}
+
+openapi_examples_rooms_filtering: Dict[str, Example] = {
+    "example_rooms_codes": {
+        "summary": "Filter by room codes",
+        "description": "Retrieve data for rooms by specifying room codes.",
+        "value": {
+            "rooms": {
+                "codes": [160311305, 160311324]
+            }
+        }
+    },
+    "example_room_number_contains": {
+        "summary": "Filter by room number containing substring",
+        "description": "Retrieve data for rooms where room number contains the specified substring.",
+        "value": {
+            "rooms": {
+                "room_number": {
+                    "contains": "7"
+                }
+            }
+        }
+    },
+    "example_room_number_exact": {
+        "summary": "Filter by room exact number",
+        "description": "Retrieve data for rooms matching the exact room number.",
+        "value": {
+            "rooms": {
+                "room_number": {
+                    "exact": "7"
+                }
+            }
+        }
+    },
+    "example_room_number_starts": {
+        "summary": "Filter by room number starting with prefix",
+        "description": "Retrieve data for rooms where room number starts with the specified prefix.",
+        "value": {
+            "rooms": {
+                "room_number": {
+                    "starts": "7"
+                }
+            }
+        }
+    }
+}
