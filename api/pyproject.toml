@@ -19,6 +19,7 @@ sqlakeyset = "^2.0.1716332987"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.4.9"
+pytest = "^8.2.2"
 
 [build-system]
 requires = ["poetry-core"]
