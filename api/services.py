@@ -3,12 +3,14 @@ from typing import Optional, Type
 
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
+from geoalchemy2 import Geometry
 from geoalchemy2.functions import ST_Transform
 from sqlalchemy import select, Select, func, text, Row, Label
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session, InstrumentedAttribute
 from sqlalchemy.sql import operators
 
+import database
 import filters
 import models
 import schemas
@@ -70,7 +72,8 @@ class BaseBoundariesService(abc.ABC):
     model_class: Type[models.BaseBoundaries]
 
     @abc.abstractmethod
-    def _get_select_query(self, srid: Optional[int]) -> Select:
+    def _get_select_query(self, srid: Optional[int],
+                          geometry_output_format: Optional[schemas.GeometryOutputFormat]) -> Select:
         pass
 
     @abc.abstractmethod
@@ -78,8 +81,24 @@ class BaseBoundariesService(abc.ABC):
         pass
 
     @staticmethod
-    def _get_geometry_field(field: InstrumentedAttribute, srid: int) -> Label:
-        return ST_Transform(field, srid).label("geometry")
+    def _get_geometry_output_type(geometry_output_format: schemas.GeometryOutputFormat):
+        match geometry_output_format:
+            case schemas.GeometryOutputFormat.ewkt:
+                return database.EWKTGeometry
+            case schemas.GeometryOutputFormat.ewkb:
+                return Geometry()
+            case _:
+                raise ValueError(f"Unable to map geometry output format {geometry_output_format}")
+
+    @staticmethod
+    def _get_geometry_field(
+            field: InstrumentedAttribute,
+            srid: int,
+            geometry_output_format: schemas.GeometryOutputFormat
+    ) -> Label:
+        geometry_output_type = BaseBoundariesService._get_geometry_output_type(geometry_output_format)
+
+        return ST_Transform(field, srid, type_=geometry_output_type).label("geometry")
 
     def search(
             self,
@@ -89,8 +108,9 @@ class BaseBoundariesService(abc.ABC):
             request: schemas.BaseSearchRequest,
             boundaries_filter: filters.BaseFilter,
             srid: Optional[int],
+            geometry_output_format: Optional[schemas.GeometryOutputFormat]
     ) -> Page:
-        query = self._get_select_query(srid=srid)
+        query = self._get_select_query(srid=srid, geometry_output_format=geometry_output_format)
 
         query = boundaries_filter.apply(request, db, query)
 
@@ -106,9 +126,10 @@ class BaseBoundariesService(abc.ABC):
             self,
             db: Session,
             code: int,
+            geometry_output_format: Optional[schemas.GeometryOutputFormat] = None,
             srid: Optional[int] = None,
     ) -> Row | None:
-        query = self._get_select_query(srid=srid)
+        query = self._get_select_query(srid=srid, geometry_output_format=geometry_output_format)
         query = self._filter_by_code(code=code, query=query)
 
         return db.execute(query).first()
@@ -117,7 +138,11 @@ class BaseBoundariesService(abc.ABC):
 class CountiesService(BaseBoundariesService):
     model_class = models.Counties
 
-    def _get_select_query(self, srid: Optional[int]) -> Select:
+    def _get_select_query(
+            self,
+            srid: Optional[int],
+            geometry_output_format: Optional[schemas.GeometryOutputFormat],
+    ) -> Select:
         columns = [
                       models.Counties.code,
                       models.Counties.feature_id,
@@ -125,7 +150,8 @@ class CountiesService(BaseBoundariesService):
                       models.Counties.area_ha,
                       models.Counties.area_ha,
                       models.Counties.created_at,
-                  ] + ([self._get_geometry_field(models.Counties.geom, srid)] if srid else [])
+                  ] + ([self._get_geometry_field(models.Counties.geom, srid,
+                                                 geometry_output_format)] if srid and geometry_output_format else [])
 
         return select(*columns).select_from(models.Counties)
 
@@ -136,7 +162,11 @@ class CountiesService(BaseBoundariesService):
 class MunicipalitiesService(BaseBoundariesService):
     model_class = models.Municipalities
 
-    def _get_select_query(self, srid: Optional[int]) -> Select:
+    def _get_select_query(
+            self,
+            srid: Optional[int],
+            geometry_output_format: Optional[schemas.GeometryOutputFormat],
+    ) -> Select:
         columns = [
                       models.Municipalities.code,
                       models.Municipalities.feature_id,
@@ -157,7 +187,11 @@ class MunicipalitiesService(BaseBoundariesService):
 class EldershipsService(BaseBoundariesService):
     model_class = models.Elderships
 
-    def _get_select_query(self, srid: Optional[int]) -> Select:
+    def _get_select_query(
+            self,
+            srid: Optional[int],
+            geometry_output_format: Optional[schemas.GeometryOutputFormat],
+    ) -> Select:
         columns = [
                       models.Elderships.code,
                       models.Elderships.feature_id,
@@ -178,7 +212,10 @@ class EldershipsService(BaseBoundariesService):
 class ResidentialAreasService(BaseBoundariesService):
     model_class = models.ResidentialAreas
 
-    def _get_select_query(self, srid: Optional[int]) -> Select:
+    def _get_select_query(
+            self, srid: Optional[int],
+            geometry_output_format: Optional[schemas.GeometryOutputFormat],
+    ) -> Select:
         columns = [
                       models.ResidentialAreas.code,
                       models.ResidentialAreas.feature_id,
@@ -199,7 +236,11 @@ class ResidentialAreasService(BaseBoundariesService):
 class StreetsService(BaseBoundariesService):
     model_class = models.Streets
 
-    def _get_select_query(self, srid: Optional[int]) -> Select:
+    def _get_select_query(
+            self,
+            srid: Optional[int],
+            geometry_output_format: Optional[schemas.GeometryOutputFormat],
+    ) -> Select:
         columns = [
                       models.Streets.code,
                       models.Streets.feature_id,
@@ -221,7 +262,11 @@ class StreetsService(BaseBoundariesService):
 class AddressesService(BaseBoundariesService):
     model_class = models.Addresses
 
-    def _get_select_query(self, srid: Optional[int]) -> Select:
+    def _get_select_query(
+            self,
+            srid: Optional[int],
+            geometry_output_format: Optional[schemas.GeometryOutputFormat],
+    ) -> Select:
         columns = [
             models.Addresses.feature_id,
             models.Addresses.code,
@@ -232,7 +277,7 @@ class AddressesService(BaseBoundariesService):
             _flat_residential_area_object,
             _municipality_object,
             _flat_street_object,
-            self._get_geometry_field(models.Addresses.geom, srid)
+            self._get_geometry_field(models.Addresses.geom, srid, geometry_output_format)
         ]
 
         return select(*columns).select_from(models.Addresses) \
@@ -248,13 +293,18 @@ class AddressesService(BaseBoundariesService):
 class RoomsService(BaseBoundariesService):
     model_class = models.Rooms
 
-    def _get_select_query(self, srid: Optional[int]) -> Select:
+    def _get_select_query(
+            self,
+            srid: Optional[int],
+            geometry_output_format: Optional[schemas.GeometryOutputFormat],
+    ) -> Select:
         columns = [
                       models.Rooms.code,
                       models.Rooms.room_number,
                       models.Rooms.created_at,
                       _address_short_object,
-                  ] + ([self._get_geometry_field(models.Addresses.geom, srid)] if srid else [])
+                  ] + ([self._get_geometry_field(models.Addresses.geom, srid,
+                                                 geometry_output_format)] if srid and geometry_output_format else [])
 
         return select(*columns).select_from(models.Rooms) \
             .outerjoin(models.Rooms.address) \

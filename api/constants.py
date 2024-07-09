@@ -3,6 +3,8 @@ from typing import Dict
 from fastapi import Query
 from fastapi.openapi.models import Example
 
+import schemas
+
 query_srid: Query = Query(
     3346,
     openapi_examples={
@@ -18,6 +20,23 @@ query_srid: Query = Query(
         },
     },
     description="A spatial reference identifier (SRID) for geometry output."
+)
+
+query_geometry_output_type: schemas.GeometryOutputFormat = Query(
+    schemas.GeometryOutputFormat.ewkt,
+    openapi_examples={
+        "example_ewkt": {
+            "summary": "EWKT",
+            "description": "Extended Well-Known Text (EWKT) format for representing geometric data.",
+            "value": schemas.GeometryOutputFormat.ewkt
+        },
+        "example_ewkb": {
+            "summary": "EWKB",
+            "description": "Extended Well-Known Binary (EWKB) format for representing geometric data.",
+            "value": schemas.GeometryOutputFormat.ewkb
+        },
+    },
+    description="Specify the format for geometry output."
 )
 
 openapi_examples_geometry_filtering: Dict[str, Example] = {

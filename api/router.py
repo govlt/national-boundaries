@@ -56,7 +56,8 @@ def create_boundaries_router(
             sort_order=sort_order,
             request=request,
             boundaries_filter=boundaries_filter,
-            srid=None
+            srid=None,
+            geometry_output_format=None,
         )
 
     @router.get(
@@ -105,9 +106,10 @@ def create_boundaries_router(
             ),
             db: Session = Depends(database.get_db),
             srid: int = constants.query_srid,
+            geometry_output_format: schemas.GeometryOutputFormat = constants.query_geometry_output_type,
             service: services.BaseBoundariesService = Depends(service_class),
     ):
-        if row := service.get_by_code(db=db, code=code, srid=srid):
+        if row := service.get_by_code(db=db, code=code, srid=srid, geometry_output_format=geometry_output_format):
             return row
         else:
             raise HTTPException(
@@ -183,6 +185,7 @@ def addresses_search(
         ],
         sort_by: schemas.SearchSortBy = Query(default=schemas.SearchSortBy.code),
         sort_order: schemas.SearchSortOrder = Query(default=schemas.SearchSortOrder.asc),
+        geometry_output_format: schemas.GeometryOutputFormat = constants.query_geometry_output_type,
         srid: int = constants.query_srid,
         db: Session = Depends(database.get_db),
         addresses_filter: filters.AddressesFilter = Depends(filters.AddressesFilter),
@@ -195,6 +198,7 @@ def addresses_search(
         request=request,
         srid=srid,
         boundaries_filter=addresses_filter,
+        geometry_output_format=geometry_output_format
     )
 
 
@@ -212,15 +216,19 @@ def addresses_search(
 def get(
         code: int = Path(
             description="The code of the address to retrieve",
-            examples=[
-                155218235
-            ]
+            openapi_examples={
+                "example_address_code": {
+                    "summary": "Example address code",
+                    "value": 155218235
+                },
+            },
         ),
         srid: int = constants.query_srid,
+        geometry_output_format: schemas.GeometryOutputFormat = constants.query_geometry_output_type,
         db: Session = Depends(database.get_db),
         service: services.AddressesService = Depends(services.AddressesService),
 ):
-    if item := service.get_by_code(db=db, code=code, srid=srid):
+    if item := service.get_by_code(db=db, code=code, srid=srid, geometry_output_format=geometry_output_format):
         return item
     else:
         raise HTTPException(
@@ -257,6 +265,7 @@ def rooms_search(
         sort_by: schemas.SearchSortBy = Query(default=schemas.SearchSortBy.code),
         sort_order: schemas.SearchSortOrder = Query(default=schemas.SearchSortOrder.asc),
         srid: int = constants.query_srid,
+        geometry_output_format: schemas.GeometryOutputFormat = Query(default=schemas.GeometryOutputFormat.ewkt),
         db: Session = Depends(database.get_db),
         rooms_filter: filters.RoomsFilter = Depends(filters.RoomsFilter),
         service: services.RoomsService = Depends(services.RoomsService),
@@ -268,6 +277,7 @@ def rooms_search(
         request=request,
         srid=srid,
         boundaries_filter=rooms_filter,
+        geometry_output_format=geometry_output_format
     )
 
 
@@ -285,15 +295,19 @@ def rooms_search(
 def get(
         code: int = Path(
             description="The code of the room to retrieve",
-            examples=[
-                194858325
-            ]
+            openapi_examples={
+                "example_room_code": {
+                    "summary": "Example room code",
+                    "value": 194858325
+                },
+            },
         ),
         srid: int = constants.query_srid,
+        geometry_output_format: schemas.GeometryOutputFormat = constants.query_geometry_output_type,
         db: Session = Depends(database.get_db),
         service: services.RoomsService = Depends(services.RoomsService),
 ):
-    if item := service.get_by_code(db=db, code=code, srid=srid):
+    if item := service.get_by_code(db=db, code=code, srid=srid, geometry_output_format=geometry_output_format):
         return item
     else:
         raise HTTPException(
