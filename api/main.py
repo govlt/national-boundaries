@@ -8,6 +8,7 @@ from fastapi_pagination import add_pagination
 from pydantic import ValidationError
 from pydantic_core import InitErrorDetails, PydanticCustomError
 
+import constants
 import filters
 import models
 import router
@@ -52,7 +53,11 @@ app.include_router(
         request_model=schemas.CountiesSearchRequest,
         item_name="county",
         item_name_plural="counties",
-        example_code=10
+        example_code=10,
+        search_openapi_examples={
+            **constants.openapi_examples_counties_filtering,
+            **constants.openapi_examples_geometry_filtering,
+        },
     ),
     prefix="/v1/counties",
     tags=["counties"],
@@ -68,6 +73,11 @@ app.include_router(
         item_name="municipality",
         item_name_plural="municipalities",
         example_code=13,
+        search_openapi_examples={
+            **constants.openapi_examples_municipalities_filtering,
+            **constants.openapi_examples_counties_filtering,
+            **constants.openapi_examples_geometry_filtering,
+        },
     ),
     prefix="/v1/municipalities",
     tags=["municipalities"],
@@ -83,6 +93,12 @@ app.include_router(
         item_name="eldership",
         item_name_plural="elderships",
         example_code=1306,
+        search_openapi_examples={
+            **constants.openapi_examples_elderships_filtering,
+            **constants.openapi_examples_municipalities_filtering,
+            **constants.openapi_examples_counties_filtering,
+            **constants.openapi_examples_geometry_filtering,
+        },
     ),
     prefix="/v1/elderships",
     tags=["elderships"],
@@ -97,7 +113,13 @@ app.include_router(
         request_model=schemas.ResidentialAreasSearchRequest,
         item_name="residential area",
         item_name_plural="residential areas",
-        example_code=31003
+        example_code=31003,
+        search_openapi_examples={
+            **constants.openapi_examples_residential_areas_filtering,
+            **constants.openapi_examples_municipalities_filtering,
+            **constants.openapi_examples_counties_filtering,
+            **constants.openapi_examples_geometry_filtering,
+        },
     ),
     prefix="/v1/residential-areas",
     tags=["residential-areas"],
@@ -112,7 +134,14 @@ app.include_router(
         request_model=schemas.StreetsSearchRequest,
         item_name="street",
         item_name_plural="streets",
-        example_code=1453778
+        example_code=1453778,
+        search_openapi_examples={
+            **constants.openapi_examples_streets_filtering,
+            **constants.openapi_examples_residential_areas_filtering,
+            **constants.openapi_examples_municipalities_filtering,
+            **constants.openapi_examples_counties_filtering,
+            **constants.openapi_examples_geometry_filtering,
+        },
     ),
     prefix="/v1/streets",
     tags=["streets"],

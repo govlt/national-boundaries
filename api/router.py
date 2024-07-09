@@ -1,4 +1,7 @@
-from fastapi import HTTPException, APIRouter, Depends, Path
+from typing import Annotated, Dict
+
+from fastapi import HTTPException, APIRouter, Depends, Path, Body
+from fastapi.openapi.models import Example
 from fastapi.params import Query
 from pydantic import BaseModel
 from sqlalchemy import text
@@ -7,6 +10,7 @@ from sqlalchemy.orm import Session
 from starlette import status
 from fastapi_pagination.cursor import CursorPage
 
+import constants
 import database
 import filters
 import schemas
@@ -21,7 +25,8 @@ def create_boundaries_router(
         response_with_geometry_model: type[BaseModel],
         item_name: str,
         item_name_plural: str,
-        example_code: int
+        example_code: int,
+        search_openapi_examples: Dict[str, Example],
 ):
     router = APIRouter()
 
@@ -35,7 +40,10 @@ def create_boundaries_router(
         generate_unique_id_function=lambda route: f"{item_name_plural.replace(' ', '-')}-search"
     )
     def boundaries_search(
-            request: request_model,
+            request: Annotated[
+                request_model,
+                Body(openapi_examples=search_openapi_examples)
+            ],
             sort_by: schemas.SearchSortBy = Query(default=schemas.SearchSortBy.code),
             sort_order: schemas.SearchSortOrder = Query(default=schemas.SearchSortOrder.asc),
             db: Session = Depends(database.get_db),
@@ -96,12 +104,7 @@ def create_boundaries_router(
                 example=example_code
             ),
             db: Session = Depends(database.get_db),
-            srid: int = Query(
-                3346,
-                example=4326,
-                description="A spatial reference identifier (SRID) for geometry output. "
-                            "For instance, 3346 is LKS, 4326 is for World Geodetic System 1984 (WGS 84)."
-            ),
+            srid: int = constants.query_srid,
             service: services.BaseBoundariesService = Depends(service_class),
     ):
         if row := service.get_by_code(db=db, code=code, srid=srid):
@@ -164,18 +167,23 @@ addresses_router = APIRouter()
     description="Search for addresses with pagination using various filters such as address codes, "
                 "feature IDs, name. Additionally, you can filter by GeoJson, EWKT geometry",
     response_description="A paginated list of addresses matching the search criteria.",
-    generate_unique_id_function=lambda _: "addresses-search"
+    generate_unique_id_function=lambda _: "addresses-search",
 )
 def addresses_search(
-        request: schemas.AddressesSearchRequest,
+        request: Annotated[
+            schemas.AddressesSearchRequest,
+            Body(openapi_examples={
+                **constants.openapi_examples_addresses_filtering,
+                **constants.openapi_examples_streets_filtering,
+                **constants.openapi_examples_residential_areas_filtering,
+                **constants.openapi_examples_municipalities_filtering,
+                **constants.openapi_examples_counties_filtering,
+                **constants.openapi_examples_geometry_filtering,
+            })
+        ],
         sort_by: schemas.SearchSortBy = Query(default=schemas.SearchSortBy.code),
         sort_order: schemas.SearchSortOrder = Query(default=schemas.SearchSortOrder.asc),
-        srid: int = Query(
-            3346,
-            example=4326,
-            description="A spatial reference identifier (SRID) for geometry output. "
-                        "For instance, 3346 is LKS, 4326 is for World Geodetic System 1984 (WGS 84)."
-        ),
+        srid: int = constants.query_srid,
         db: Session = Depends(database.get_db),
         addresses_filter: filters.AddressesFilter = Depends(filters.AddressesFilter),
         service: services.AddressesService = Depends(services.AddressesService),
@@ -204,14 +212,11 @@ def addresses_search(
 def get(
         code: int = Path(
             description="The code of the address to retrieve",
-            example=155218235
+            examples=[
+                155218235
+            ]
         ),
-        srid: int = Query(
-            3346,
-            example=4326,
-            description="A spatial reference identifier (SRID) for geometry output. "
-                        "For instance, 3346 is LKS, 4326 is for World Geodetic System 1984 (WGS 84)."
-        ),
+        srid: int = constants.query_srid,
         db: Session = Depends(database.get_db),
         service: services.AddressesService = Depends(services.AddressesService),
 ):
@@ -237,15 +242,21 @@ rooms_router = APIRouter()
     generate_unique_id_function=lambda _: "rooms-search"
 )
 def rooms_search(
-        request: schemas.RoomsSearchRequest,
+        request: Annotated[
+            schemas.RoomsSearchRequest,
+            Body(openapi_examples={
+                **constants.openapi_examples_rooms_filtering,
+                **constants.openapi_examples_addresses_filtering,
+                **constants.openapi_examples_streets_filtering,
+                **constants.openapi_examples_residential_areas_filtering,
+                **constants.openapi_examples_municipalities_filtering,
+                **constants.openapi_examples_counties_filtering,
+                **constants.openapi_examples_geometry_filtering,
+            })
+        ],
         sort_by: schemas.SearchSortBy = Query(default=schemas.SearchSortBy.code),
         sort_order: schemas.SearchSortOrder = Query(default=schemas.SearchSortOrder.asc),
-        srid: int = Query(
-            3346,
-            example=4326,
-            description="A spatial reference identifier (SRID) for geometry output. "
-                        "For instance, 3346 is LKS, 4326 is for World Geodetic System 1984 (WGS 84)."
-        ),
+        srid: int = constants.query_srid,
         db: Session = Depends(database.get_db),
         rooms_filter: filters.RoomsFilter = Depends(filters.RoomsFilter),
         service: services.RoomsService = Depends(services.RoomsService),
@@ -258,6 +269,7 @@ def rooms_search(
         srid=srid,
         boundaries_filter=rooms_filter,
     )
+
 
 @rooms_router.get(
     "/{code}",
@@ -273,14 +285,11 @@ def rooms_search(
 def get(
         code: int = Path(
             description="The code of the room to retrieve",
-            example=194858325
+            examples=[
+                194858325
+            ]
         ),
-        srid: int = Query(
-            3346,
-            example=4326,
-            description="A spatial reference identifier (SRID) for geometry output. "
-                        "For instance, 3346 is LKS, 4326 is for World Geodetic System 1984 (WGS 84)."
-        ),
+        srid: int = constants.query_srid,
         db: Session = Depends(database.get_db),
         service: services.RoomsService = Depends(services.RoomsService),
 ):
