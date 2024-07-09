@@ -1,4 +1,26 @@
-openapi_examples_geometry_filtering = {
+from typing import Dict
+
+from fastapi import Query
+from fastapi.openapi.models import Example
+
+query_srid: Query = Query(
+    3346,
+    openapi_examples={
+        "example_wgs": {
+            "summary": "WGS 84 (EPSG:4326)",
+            "description": "The World Geodetic System (WGS 84) coordinate reference system.",
+            "value": 4326
+        },
+        "example_lks": {
+            "summary": "LKS 94 (EPSG:3346)",
+            "description": "The Lithuanian Coordinate System (LKS 94) reference system.",
+            "value": 3346
+        },
+    },
+    description="A spatial reference identifier (SRID) for geometry output."
+)
+
+openapi_examples_geometry_filtering: Dict[str, Example] = {
     "example_ewkb": {
         "summary": "Filter using EWKB and 'intersects'",
         "description": "Filter geometries using hexed EWKB (Extended Well-Known Binary) format and the 'intersects' method. SRID is mandatory.",
@@ -33,7 +55,7 @@ openapi_examples_geometry_filtering = {
     }
 }
 
-openapi_examples_counties_filtering = {
+openapi_examples_counties_filtering: Dict[str, Example] = {
     "example_counties_codes": {
         "summary": "Filter by county codes",
         "description": "Retrieve data for counties by specifying county codes.",
@@ -87,7 +109,7 @@ openapi_examples_counties_filtering = {
     }
 }
 
-openapi_examples_municipalities_filtering = {
+openapi_examples_municipalities_filtering: Dict[str, Example] = {
     "example_municipalities_codes": {
         "summary": "Filter by municipality codes",
         "description": "Retrieve data for municipalities by specifying municipality codes.",
@@ -141,7 +163,7 @@ openapi_examples_municipalities_filtering = {
     }
 }
 
-openapi_examples_elderships_filtering = {
+openapi_examples_elderships_filtering: Dict[str, Example] = {
     "example_elderships_codes": {
         "summary": "Filter by eldership codes",
         "description": "Retrieve data for elderships by specifying eldership codes.",
@@ -195,7 +217,7 @@ openapi_examples_elderships_filtering = {
     }
 }
 
-openapi_examples_residential_areas_filtering = {
+openapi_examples_residential_areas_filtering: Dict[str, Example] = {
     "example_residential_areas_codes": {
         "summary": "Filter by residential area codes",
         "description": "Retrieve data for residential areas by specifying residential area codes.",
@@ -249,7 +271,7 @@ openapi_examples_residential_areas_filtering = {
     }
 }
 
-openapi_examples_streets_filtering = {
+openapi_examples_streets_filtering: Dict[str, Example] = {
     "example_streets_codes": {
         "summary": "Filter by street codes",
         "description": "Retrieve data for streets by specifying street codes.",

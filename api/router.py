@@ -202,7 +202,9 @@ def addresses_search(
 def get(
         code: int = Path(
             description="The code of the address to retrieve",
-            example=155218235
+            examples=[
+                155218235
+            ]
         ),
         srid: int = constants.query_srid,
         db: Session = Depends(database.get_db),
@@ -262,7 +264,9 @@ def rooms_search(
 def get(
         code: int = Path(
             description="The code of the room to retrieve",
-            example=194858325
+            examples=[
+                194858325
+            ]
         ),
         srid: int = constants.query_srid,
         db: Session = Depends(database.get_db),
