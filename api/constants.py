@@ -23,7 +23,7 @@ query_srid: Query = Query(
 openapi_examples_geometry_filtering: Dict[str, Example] = {
     "example_ewkb": {
         "summary": "Filter using EWKB and 'intersects'",
-        "description": "Filter geometries using hexed EWKB (Extended Well-Known Binary) format and the 'intersects' method. SRID is mandatory.",
+        "description": "Filter geometries using hexed EWKB (Extended Well-Known Binary) format and the 'intersects' method. SRID inside EWKB is mandatory.",
         "value": {
             "geometry": {
                 "method": "intersects",
@@ -33,7 +33,7 @@ openapi_examples_geometry_filtering: Dict[str, Example] = {
     },
     "example_ewkt": {
         "summary": "Filter using EWKT and 'intersects'",
-        "description": "Filter geometries using EWKT (Extended Well-Known Text) format with the default 'intersects' method. SRID is mandatory.",
+        "description": "Filter geometries using EWKT (Extended Well-Known Text) format with the default 'intersects' method. SRID inside EWKT is mandatory.",
         "value": {
             "geometry": {
                 "ewkt": "SRID=4326;POLYGON((25.277429 54.687233, 25.277429 54.680658, 25.289244 54.680658, 25.289244 54.687233, 25.277429 54.687233))"
@@ -42,7 +42,7 @@ openapi_examples_geometry_filtering: Dict[str, Example] = {
     },
     "example_geojson": {
         "summary": "Filter using GeoJSON and 'contains'",
-        "description": "Filter geometries using GeoJSON format and the 'contains' method. CRS is mandatory.",
+        "description": "Filter geometries using GeoJSON format and the 'contains' method. CRS inside GeoJSON is mandatory.",
         "value": {
             "geometry": {
                 "method": "contains",
