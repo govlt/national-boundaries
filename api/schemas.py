@@ -17,6 +17,11 @@ class SearchSortOrder(str, enum.Enum):
     desc = 'desc'
 
 
+class GeometryOutputFormat(str, enum.Enum):
+    ewkt = 'ewkt'
+    ewkb = 'ewkb'
+
+
 class Geometry(BaseModel):
     srid: int = Field(description="Spatial Reference Identifier (SRID) for the geometry")
     data: str = Field(description="Geometry data in WKB (Well-Known Binary) format, represented as a hex string")

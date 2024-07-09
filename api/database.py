@@ -1,6 +1,8 @@
+from typing import Optional
+
 import geoalchemy2
 import sqlean
-from geoalchemy2 import load_spatialite
+from geoalchemy2 import load_spatialite, Geometry, WKTElement
 from geoalchemy2.functions import GenericFunction
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
@@ -39,14 +41,18 @@ class GeomFromGeoJSON(GenericFunction):
     inherit_cache = True
 
 
-class GeomFromEWKB(GenericFunction):
-    """
-    Returns geometric object given its EWKB Representation
+class EWKTGeometry(Geometry):
+    # We need to override constructor only to set extended to True
+    def __init__(self, geometry_type: Optional[str] = "GEOMETRY", srid=-1, dimension=2, spatial_index=True,
+                 use_N_D_index=False, use_typmod: Optional[bool] = None, from_text: Optional[str] = None,
+                 name: Optional[str] = None, nullable=True, _spatial_index_reflected=None) -> None:
+        super().__init__(geometry_type, srid, dimension, spatial_index, use_N_D_index, use_typmod, from_text, name,
+                         nullable, _spatial_index_reflected)
+        self.extended = True
 
-    see https://www.gaia-gis.it/gaia-sins/spatialite-sql-5.1.0.html
+    name = "geometry"
+    from_text = 'ST_GeomFromEWKT'
+    as_binary = 'AsEWKT'
+    ElementType = WKTElement
 
-    Return type: :class:`geoalchemy2.types.Geometry`.
-    """
-
-    type = geoalchemy2.types.Geometry()
-    inherit_cache = True
+    cache_ok = False
