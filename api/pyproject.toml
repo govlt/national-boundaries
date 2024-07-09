@@ -18,7 +18,7 @@ sqlakeyset = "^2.0.1716332987"
 
 
 [tool.poetry.group.dev.dependencies]
-ruff = "^0.4.9"
+ruff = "^0.5.1"
 
 [build-system]
 requires = ["poetry-core"]
