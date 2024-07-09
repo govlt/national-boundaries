@@ -1,4 +1,7 @@
-from fastapi import HTTPException, APIRouter, Depends, Path
+from typing import Annotated, Dict
+
+from fastapi import HTTPException, APIRouter, Depends, Path, Body
+from fastapi.openapi.models import Example
 from fastapi.params import Query
 from pydantic import BaseModel
 from sqlalchemy import text
@@ -21,7 +24,8 @@ def create_boundaries_router(
         response_with_geometry_model: type[BaseModel],
         item_name: str,
         item_name_plural: str,
-        example_code: int
+        example_code: int,
+        search_openapi_examples: Dict[str, Example],
 ):
     router = APIRouter()
 
@@ -35,7 +39,10 @@ def create_boundaries_router(
         generate_unique_id_function=lambda route: f"{item_name_plural.replace(' ', '-')}-search"
     )
     def boundaries_search(
-            request: request_model,
+            request: Annotated[
+                request_model,
+                Body(openapi_examples=search_openapi_examples)
+            ],
             sort_by: schemas.SearchSortBy = Query(default=schemas.SearchSortBy.code),
             sort_order: schemas.SearchSortOrder = Query(default=schemas.SearchSortOrder.asc),
             db: Session = Depends(database.get_db),
@@ -258,6 +265,7 @@ def rooms_search(
         srid=srid,
         boundaries_filter=rooms_filter,
     )
+
 
 @rooms_router.get(
     "/{code}",
