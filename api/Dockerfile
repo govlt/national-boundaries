@@ -1,5 +1,5 @@
 # Stage 1: Prepare SQLite database
-FROM ghcr.io/osgeo/gdal:ubuntu-full-3.9.0 as database-builder
+FROM ghcr.io/osgeo/gdal:ubuntu-full-3.9.0 AS database-builder
 WORKDIR /opt/database
 
 RUN apt-get update && apt-get install -y csvkit &&  rm -rf /var/lib/apt/lists/*
@@ -9,7 +9,7 @@ COPY create-database.sh ./create-database.sh
 RUN bash create-database.sh
 
 # Multi stage poetry docker build https://medium.com/@albertazzir/blazing-fast-python-docker-builds-with-poetry-a78a66f5aed0
-FROM python:3.12 as builder
+FROM python:3.12 AS builder
 
 RUN pip install poetry==1.8.3
 
