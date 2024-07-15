@@ -4,7 +4,7 @@ import geoalchemy2
 import sqlean
 from geoalchemy2 import load_spatialite, Geometry, WKTElement
 from geoalchemy2.functions import GenericFunction
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, NullPool
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 
 
@@ -15,7 +15,13 @@ def _connect():
     return conn
 
 
-engine = create_engine("sqlite://", creator=_connect, echo=True, echo_pool=True)
+engine = create_engine(
+    "sqlite://",
+    creator=_connect,
+    echo=True,
+    echo_pool=True,
+    poolclass=NullPool,
+)
 session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
