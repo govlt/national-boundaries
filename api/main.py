@@ -10,11 +10,9 @@ from pydantic_core import InitErrorDetails, PydanticCustomError
 
 import constants
 import filters
-import models
 import router
 import schemas
 import services
-from database import engine
 
 if SENTRY_DSN := os.environ.get("SENTRY_DSN"):
     sentry_sdk.init(
@@ -41,8 +39,6 @@ app = FastAPI(
         "identifier": "CC-BY-4.0",
     },
 )
-
-models.Base.metadata.create_all(bind=engine)
 
 app.include_router(
     router.create_boundaries_router(
