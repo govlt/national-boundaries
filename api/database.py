@@ -16,7 +16,7 @@ def _connect():
 
 
 engine = create_engine("sqlite://", creator=_connect, echo=True, echo_pool=True)
-session = sessionmaker(engine)
+session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
