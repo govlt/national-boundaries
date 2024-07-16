@@ -47,6 +47,11 @@ class GeomFromGeoJSON(GenericFunction):
     inherit_cache = True
 
 
+class GeomFromEWKB(GenericFunction):
+    type = geoalchemy2.types.Geometry()
+    inherit_cache = True
+
+
 class EWKTGeometry(Geometry):
     # We need to override constructor only to set extended to True
     def __init__(self, geometry_type: Optional[str] = "GEOMETRY", srid=-1, dimension=2, spatial_index=True,
