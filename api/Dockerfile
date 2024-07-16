@@ -41,7 +41,8 @@ ENV VIRTUAL_ENV=/app/.venv \
     SPATIALITE_LIBRARY_PATH=mod_spatialite.so \
     SENTRY_DSN="" \
     SENTRY_ENVIRONMENT="production" \
-    ROOT_URL=""
+    ROOT_URL="" \
+    WORKERS=1
 
 COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 COPY . .

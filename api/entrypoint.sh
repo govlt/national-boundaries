@@ -1,4 +1,3 @@
 #!/bin/sh
 
-# Run FastAPI server
-fastapi run main.py --port 80 --root-path "${ROOT_URL}"
+gunicorn --bind 0.0.0.0:80 --workers "${WORKERS}" -k workers.ApiWorker main:app
