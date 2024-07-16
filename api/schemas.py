@@ -1,3 +1,4 @@
+import abc
 import datetime
 import enum
 from typing import Optional, List
@@ -329,57 +330,110 @@ class CountiesFilter(GeneralBoundariesFilter):
     pass
 
 
-class BaseSearchRequest(BaseModel):
+class BaseSearchFilterRequest(BaseModel):
     geometry: Optional[GeometryFilter] = Field(
         default=None,
         description="Filter by geometry",
     )
 
 
-class CountiesSearchRequest(BaseSearchRequest):
+class CountiesSearchFilterRequest(BaseSearchFilterRequest):
     counties: Optional[CountiesFilter] = Field(
         default=None,
         description="Filter by counties",
     )
 
 
-class MunicipalitiesSearchRequest(CountiesSearchRequest):
+class MunicipalitiesSearchFilterRequest(CountiesSearchFilterRequest):
     municipalities: Optional[MunicipalitiesFilter] = Field(
         default=None,
         description="Filter by municipalities",
     )
 
 
-class ResidentialAreasSearchRequest(MunicipalitiesSearchRequest):
+class ResidentialAreasSearchFilterRequest(MunicipalitiesSearchFilterRequest):
     residential_areas: Optional[ResidentialAreasFilter] = Field(
         default=None,
         description="Filter by residential areas",
     )
 
 
-class EldershipsSearchRequest(MunicipalitiesSearchRequest):
+class EldershipsSearchFilterRequest(MunicipalitiesSearchFilterRequest):
     elderships: Optional[EldershipsFilter] = Field(
         default=None,
         description="Filter by elderships",
     )
 
 
-class StreetsSearchRequest(ResidentialAreasSearchRequest):
+class StreetsSearchFilterRequest(ResidentialAreasSearchFilterRequest):
     streets: Optional[StreetsFilter] = Field(
         default=None,
         description="Filter by streets",
     )
 
 
-class AddressesSearchRequest(StreetsSearchRequest):
+class AddressesSearchFilterRequest(StreetsSearchFilterRequest):
     addresses: Optional[AddressesFilter] = Field(
         default=None,
         description="Filter by addresses",
     )
 
 
-class RoomsSearchRequest(StreetsSearchRequest):
+class RoomsSearchFilterRequest(StreetsSearchFilterRequest):
     rooms: Optional[RoomsFilter] = Field(
         default=None,
         description="Filter by rooms",
+    )
+
+
+class BaseSearchRequest(abc.ABC, BaseModel):
+    filters: List[BaseSearchFilterRequest]
+
+
+class CountiesSearchRequest(BaseSearchRequest):
+    filters: List[CountiesSearchFilterRequest] = Field(
+        default=[],
+        description="A list of filters to apply for searching counties, combined using OR logic.",
+    )
+
+
+class MunicipalitiesSearchRequest(BaseSearchRequest):
+    filters: List[MunicipalitiesSearchFilterRequest] = Field(
+        default=[],
+        description="A list of filters to apply for searching municipalities, combined using OR logic.",
+    )
+
+
+class ResidentialAreasSearchRequest(BaseSearchRequest):
+    filters: List[ResidentialAreasSearchFilterRequest] = Field(
+        default=[],
+        description="A list of filters to apply for searching residential areas, combined using OR logic.",
+    )
+
+
+class EldershipsSearchRequest(BaseSearchRequest):
+    filters: List[EldershipsSearchFilterRequest] = Field(
+        default=[],
+        description="A list of filters to apply for searching elderships, combined using OR logic.",
+    )
+
+
+class StreetsSearchRequest(BaseSearchRequest):
+    filters: List[StreetsSearchFilterRequest] = Field(
+        default=[],
+        description="A list of filters to apply for searching streets, combined using OR logic.",
+    )
+
+
+class AddressesSearchRequest(BaseSearchRequest):
+    filters: List[AddressesSearchFilterRequest] = Field(
+        default=[],
+        description="A list of filters to apply for searching addresses, combined using OR logic.",
+    )
+
+
+class RoomsSearchRequest(BaseSearchRequest):
+    filters: List[RoomsSearchFilterRequest] = Field(
+        default=[],
+        description="A list of filters to apply for searching rooms, combined using OR logic.",
     )

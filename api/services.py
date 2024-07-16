@@ -5,7 +5,7 @@ from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate
 from geoalchemy2 import Geometry
 from geoalchemy2.functions import ST_Transform
-from sqlalchemy import select, Select, func, text, Row, Label
+from sqlalchemy import select, Select, func, text, Row, Label, or_, and_
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session, InstrumentedAttribute
 from sqlalchemy.sql import operators
@@ -112,7 +112,14 @@ class BaseBoundariesService(abc.ABC):
     ) -> Page:
         query = self._get_select_query(srid=srid, geometry_output_format=geometry_output_format)
 
-        query = boundaries_filter.apply(request, db, query)
+        query_search_filters = []
+        for search_filter in request.filters:
+            query_and_filters = list(boundaries_filter.apply(search_filter, db))
+
+            if len(query_and_filters) > 0:
+                query_search_filters.append(and_(*query_and_filters))
+
+        query = query.where(or_(*query_search_filters))
 
         sort_by_field = operators.collate(getattr(self.model_class, sort_by), "NOCASE")
 
