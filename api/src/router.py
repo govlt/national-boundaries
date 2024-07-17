@@ -10,11 +10,7 @@ from sqlalchemy.orm import Session
 from starlette import status
 from fastapi_pagination.cursor import CursorPage
 
-import constants
-import database
-import filters
-import schemas
-import services
+from src import constants, filters, database, schemas, services
 
 
 def create_boundaries_router(

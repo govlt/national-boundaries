@@ -2,7 +2,7 @@ from geoalchemy2 import Geometry
 from sqlalchemy import Column, Integer, String, Double, ForeignKey, Date
 from sqlalchemy.orm import relationship
 
-from database import Base
+from src.database import Base
 
 
 class BaseBoundaries(Base):
