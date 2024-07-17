@@ -3,7 +3,7 @@ from typing import Dict
 from fastapi import Query
 from fastapi.openapi.models import Example
 
-import schemas
+from src import schemas
 
 query_srid: Query = Query(
     3346,

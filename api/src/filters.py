@@ -7,9 +7,7 @@ from sqlalchemy.sql._typing import ColumnExpressionArgument
 from sqlalchemy.sql.functions import GenericFunction, func
 from sqlean import OperationalError
 
-import database
-import models
-import schemas
+from src import database, schemas, models
 
 
 class BaseFilter(ABC):

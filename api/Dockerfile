@@ -45,7 +45,7 @@ ENV VIRTUAL_ENV=/app/.venv \
     WORKERS=1
 
 COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
-COPY . .
+COPY src/ src/
 COPY --chmod=555 entrypoint.sh /opt/app/entrypoint.sh
 
 COPY --from=database-builder --chmod=444 /opt/database/boundaries.sqlite /opt/database/data-sources/checksums.txt ./

@@ -8,11 +8,7 @@ from fastapi_pagination import add_pagination
 from pydantic import ValidationError
 from pydantic_core import InitErrorDetails, PydanticCustomError
 
-import constants
-import filters
-import router
-import schemas
-import services
+from src import constants, filters, router, schemas, services
 
 if SENTRY_DSN := os.environ.get("SENTRY_DSN"):
     sentry_sdk.init(
@@ -183,7 +179,7 @@ add_pagination(app)
 
 
 def main() -> None:
-    uvicorn.run("main:app", host="0.0.0.0", server_header=False)
+    uvicorn.run("src.main:app", host="0.0.0.0", server_header=False)
 
 
 if __name__ == "__main__":

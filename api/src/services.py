@@ -10,10 +10,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session, InstrumentedAttribute
 from sqlalchemy.sql import operators
 
-import database
-import filters
-import models
-import schemas
+from src import filters, schemas, models, database
 
 # FastAPI has very poor support for nested types
 # Build jsonb in order to avoid N+1 and deserialization problems
