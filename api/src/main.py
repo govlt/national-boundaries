@@ -18,9 +18,18 @@ if SENTRY_DSN := os.environ.get("SENTRY_DSN"):
     )
 
 app = FastAPI(
-    title="National Boundaries API",
-    summary="Provides data about the national boundaries of Lithuania",
-    description='ReDoc style documentation can be found <a href="/redoc">here</a>.',
+    title="National Boundaries and Addresses API of Lithuania",
+    summary="Access comprehensive data on national boundaries and addresses registered in the Republic of Lithuania",
+    description='This API provides detailed information and geometries about counties, municipalities, elderships, '
+                'residential areas, streets, addresses, and rooms.<br>ReDoc style documentation can be found <a '
+                'href="/redoc">here</a>.<br>'
+                '<br><br>'
+                'This API is licensed under the '
+                '[MIT License](https://github.com/govlt/national-boundaries-api#license).'
+                '<br> '
+                'Data from this API is licensed under '
+                '[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.lt). For more information, '
+                'visit [Registrų centras](https://www.registrucentras.lt/p/1187).',
     version="0.0.1",
     terms_of_service="https://www.registrucentras.lt/p/1187",
     docs_url="/",
@@ -30,8 +39,8 @@ app = FastAPI(
         "email": "karolis@vycius.lt",
     },
     license_info={
-        "name": "CC BY 4.0",
-        "url": "https://github.com/govlt/national-boundaries",
+        "name": "MIT for API and CC BY 4.0 for data",
+        "url": "https://github.com/govlt/national-boundaries-api#license",
         "identifier": "CC-BY-4.0",
     },
 )
