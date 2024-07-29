@@ -161,17 +161,13 @@ jobs:
       - name: Delete residential-areas.pmtiles
         run: rm output/pmtiles/residential-areas.pmtiles
 
-      - name: Publish to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
-        id: cloudflare
+
+      - name: Upload to Cloudflare pages
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_PAGES_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_PAGES_ACCOUNT_ID }}
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ startsWith(github.ref, 'refs/tags/') && 'production' ||  (github.head_ref || github.ref_name) }}
-          projectName: national-boundaries
-          directory: output
-          wranglerVersion: '3'
+          command: pages deploy dist output --project-name=national-boundaries --commit-dirty=true
 
       - name: Upload page artifact
         uses: actions/upload-artifact@v4
