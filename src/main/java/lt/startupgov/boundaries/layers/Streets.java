@@ -17,11 +17,11 @@ public class Streets implements Layer {
                     .setMinPixelSizeAtAllZooms(0)
                     .setMinZoom(10)
                     .setId(fid)
-                    .setAttrWithMinzoom("id", fid, 12)
-                    .setAttrWithMinzoom("name", sf.getTag("name"), 12)
-                    .setAttrWithMinzoom("full_name", sf.getTag("full_name"), 12)
-                    .setAttrWithMinzoom("code", sf.getTag("code"), 12)
-                    .setAttrWithMinzoom("residential_area_code", sf.getTag("residential_area_code"), 12);
+                    .setAttr("id", fid)
+                    .setAttr("name", sf.getTag("name"))
+                    .setAttr("full_name", sf.getTag("full_name"))
+                    .setAttr("code", sf.getTag("code"))
+                    .setAttr("residential_area_code", sf.getTag("residential_area_code"));
         }
     }
 
