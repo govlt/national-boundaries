@@ -12,64 +12,46 @@ public class Main extends ForwardingProfile {
 
     private record LayerConfiguration(
             String name,
-            String sourceName,
             String pmTilesName,
-            Layer layer,
-            Path path,
-            String url
+            Layer layer
     ) {
     }
 
     static final LayerConfiguration[] layerConfigurations = {
             new LayerConfiguration(
                     "Counties of Lithuania",
-                    Source.COUNTIES,
                     "counties.pmtiles",
-                    new Counties(),
-                    Path.of("data", "sources", "counties-4326.gpkg.zip"),
-                    "https://cdn.biip.lt/tiles/poc/gpkg/counties.gpkg.zip"
+                    new Counties()
             ),
             new LayerConfiguration(
                     "Municipalities of Lithuania",
-                    Source.MUNICIPALITIES,
                     "municipalities.pmtiles",
-                    new Municipalities(),
-                    Path.of("data", "sources", "municipalities-4326.gpkg.zip"),
-                    "https://cdn.biip.lt/tiles/poc/gpkg/municipalities.gpkg.zip"
+                    new Municipalities()
             ),
             new LayerConfiguration(
                     "Elderships of Lithuania",
-                    Source.ELDERSHIPS,
                     "elderships.pmtiles",
-                    new Elderships(),
-                    Path.of("data", "sources", "elderships-4326.gpkg.zip"),
-                    "https://cdn.biip.lt/tiles/poc/gpkg/elderships.gpkg.zip"
+                    new Elderships()
             ),
             new LayerConfiguration(
                     "Residential areas of Lithuania",
-                    Source.RESIDENTIALS,
-                    "residentials.pmtiles",
-                    new Residentials(),
-                    Path.of("data", "sources", "residentials-4326.gpkg.zip"),
-                    "https://cdn.biip.lt/tiles/poc/gpkg/residentials.gpkg.zip"
+                    "residential-areas.pmtiles",
+                    new ResidentialAreas()
             ),
             new LayerConfiguration(
                     "Streets of Lithuania",
-                    Source.STREETS,
                     "streets.pmtiles",
-                    new Streets(),
-                    Path.of("data", "sources", "streets-4326.gpkg.zip"),
-                    "https://cdn.biip.lt/tiles/poc/gpkg/streets.gpkg.zip"
+                    new Streets()
             ),
     };
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         for (LayerConfiguration layerConfiguration : layerConfigurations) {
             Planetiler.create(Arguments.fromConfigFile(Path.of("config.properties")))
                     .addGeoPackageSource(
-                            layerConfiguration.sourceName,
-                            layerConfiguration.path,
-                            layerConfiguration.url
+                            Source.BOUNDARIES,
+                            Path.of("data", "boundaries-4326.gpkg"),
+                            "https://cdn.biip.lt/tiles/poc/boundaries/boundaries.gpkg"
                     )
                     .overwriteOutput(Path.of("data", "output", layerConfiguration.pmTilesName))
                     .setProfile((runner) -> new Main(layerConfiguration))
@@ -82,7 +64,7 @@ public class Main extends ForwardingProfile {
     private Main(LayerConfiguration configuration) {
         this.configuration = configuration;
 
-        registerSourceHandler(configuration.sourceName, configuration.layer);
+        registerSourceHandler(Source.BOUNDARIES, configuration.layer);
         registerHandler(configuration.layer);
     }
 
