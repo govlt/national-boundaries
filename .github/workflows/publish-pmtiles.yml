@@ -84,6 +84,60 @@ jobs:
           path: logs-planetiler.txt
           if-no-files-found: error
 
+  publish-release:
+    name: Publish release
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency: publish-release
+    if: github.ref == 'refs/heads/main'
+    needs:
+      - generate-geopackage
+      - generate-pmtiles
+    permissions:
+      contents: write
+    steps:
+      - name: Download PMTiles artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pmtiles
+          path: pmtiles
+          merge-multiple: true
+
+      - name: Download boundaries artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: boundaries-4326.gpkg
+          path: .
+          merge-multiple: true
+
+      - name: Download checksums artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: data-source-checksums.txt
+          path: .
+          merge-multiple: true
+
+      - name: Get next version
+        uses: reecetech/version-increment@2024.4.4
+        id: version
+        with:
+          scheme: calver
+
+      - name: Upload artifacts to GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          make_latest: true
+          generate_release_notes: true
+          tag_name: ${{ steps.version.outputs.version }}
+          files: |
+            boundaries-4326.gpkg
+            pmtiles/counties.pmtiles
+            pmtiles/municipalities.pmtiles
+            pmtiles/elderships.pmtiles
+            pmtiles/residential-areas.pmtiles
+            pmtiles/streets.pmtiles
+            data-source-checksums.txt
+
   publish-page:
     name: Publish page
     runs-on: ubuntu-latest
@@ -95,7 +149,7 @@ jobs:
       contents: read
       deployments: write
     steps:
-      - name: Download styles artifact
+      - name: Download PMTiles artifact
         uses: actions/download-artifact@v4
         with:
           name: pmtiles
