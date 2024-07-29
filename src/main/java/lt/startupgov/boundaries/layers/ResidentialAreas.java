@@ -5,16 +5,17 @@ import com.onthegomap.planetiler.reader.SourceFeature;
 import lt.startupgov.boundaries.constants.Layers;
 import lt.startupgov.boundaries.constants.Source;
 
-public class Elderships implements Layer {
+public class ResidentialAreas implements Layer {
 
     @Override
     public void processFeature(SourceFeature sf, FeatureCollector features) {
-        if (sf.getSource().equals(Source.BOUNDARIES) && sf.getSourceLayer().equals(Layers.ELDERSHIPS) && sf.canBePolygon()) {
+        if (sf.getSource().equals(Source.BOUNDARIES) && sf.getSourceLayer().equals(Layers.RESIDENTIAL_AREAS) && sf.canBePolygon()) {
             var fid = sf.getLong("feature_id");
 
-            features.polygon(Layers.ELDERSHIPS)
+            features.polygon(Layers.RESIDENTIAL_AREAS)
                     .setBufferPixels(4)
                     .setMinPixelSizeAtAllZooms(0)
+                    .setMinZoom(10)
                     .setId(fid)
                     .setAttr("id", fid)
                     .setAttr("name", sf.getTag("name"))

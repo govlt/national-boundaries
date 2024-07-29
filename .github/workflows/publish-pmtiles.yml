@@ -10,34 +10,32 @@ on:
 permissions: { }
 
 jobs:
-  transform-municipalities-geojson:
-    name: Transform municipalities GeoJson
+  generate-geopackage:
+    name: Generate GeoPackage
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    container: ghcr.io/osgeo/gdal:ubuntu-full-3.9.0
+    container: ghcr.io/osgeo/gdal:ubuntu-full-3.9.1
     permissions:
       contents: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download adr_gra_savivaldybes.json
-        run: wget -O adr_gra_savivaldybes.json -nv "https://www.registrucentras.lt/aduomenys/?byla=adr_gra_savivaldybes.json"
+      - name: Generate
+        run: chmod +x create-geopackage.sh && ./create-geopackage.sh
 
-      - name: Create directory
-        run: mkdir -p output/espg-4326
-
-      - name: Transform to EPSG:4326 compliant with RFC 7946
-        run: ogr2ogr -f GeoJSON output/espg-4326/municipalities.json -lco RFC7946=YES -t_srs EPSG:4326 adr_gra_savivaldybes.json
-
-      - name: Transform to GeoPackage
-        run: ogr2ogr -f GPKG output/espg-4326/municipalities.gpkg.zip output/espg-4326/municipalities.json
-
-      - name: Upload artifact
+      - name: Upload GeoPackage artifact
         uses: actions/upload-artifact@v4
         with:
-          name: municipalities
-          path: output
+          name: boundaries-4326.gpkg
+          path: boundaries-4326.gpkg
+          if-no-files-found: error
+
+      - name: Upload checksums artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: data-source-checksums.txt
+          path: data-sources/data-source-checksums.txt
           if-no-files-found: error
 
   generate-pmtiles:
@@ -45,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs:
-      - transform-municipalities-geojson
+      - generate-geopackage
     permissions:
       contents: read
     steps:
@@ -63,8 +61,8 @@ jobs:
       - name: Download municipalities artifact
         uses: actions/download-artifact@v4
         with:
-          name: municipalities
-          path: data/sources
+          name: boundaries-4326.gpkg
+          path: data
           merge-multiple: true
 
       - name: Generate vector basemap PMTiles
@@ -91,19 +89,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs:
-      - transform-municipalities-geojson
+      - generate-geopackage
       - generate-pmtiles
     permissions:
       contents: read
       deployments: write
     steps:
-      - name: Download municipalities artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: municipalities
-          path: output
-          merge-multiple: true
-
       - name: Download styles artifact
         uses: actions/download-artifact@v4
         with:
@@ -113,8 +104,8 @@ jobs:
 
       # Cloudflare Pages only supports files up to 25 MiB in size
       # Temporary delete this file
-      - name: Delete residentials.pmtiles
-        run: rm output/pmtiles/residentials.pmtiles
+      - name: Delete residential-areas.pmtiles
+        run: rm output/pmtiles/residential-areas.pmtiles
 
       - name: Publish to Cloudflare Pages
         uses: cloudflare/pages-action@v1

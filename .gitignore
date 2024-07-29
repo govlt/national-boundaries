@@ -42,6 +42,10 @@ bin/
 # Ignore pmtiles
 *.pmtiles
 
+# Ignore GeoPackage
+*.gpkg
+
 # Ignore Gradle build output directory
 build/
 /data/
+/data-sources
