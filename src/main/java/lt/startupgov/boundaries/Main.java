@@ -51,7 +51,7 @@ public class Main extends ForwardingProfile {
                     .addGeoPackageSource(
                             Source.BOUNDARIES,
                             Path.of("data", "boundaries-4326.gpkg"),
-                            "https://cdn.biip.lt/tiles/poc/boundaries/boundaries.gpkg"
+                            "https://github.com/govlt/national-boundaries/releases/latest/download/boundaries-4326.gpkg"
                     )
                     .overwriteOutput(Path.of("data", "output", layerConfiguration.pmTilesName))
                     .setProfile((runner) -> new Main(layerConfiguration))
