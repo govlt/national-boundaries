@@ -37,9 +37,6 @@ jobs:
           path: boundaries-4326.gpkg
           if-no-files-found: error
 
-      - name: Debug
-        run: echo "Hello debug" >> data-sources/data-source-checksums.txt
-
       - name: Download latest data source hashes
         run: wget -O published-data-source-checksums.txt "https://github.com/govlt/national-boundaries/releases/latest/download/data-source-checksums.txt"
 
