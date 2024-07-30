@@ -133,9 +133,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           make_latest: true
-          generate_release_notes: true
+          generate_release_notes: ${{ startsWith(github.ref, 'refs/tags/') && 'true' ||  'false' }}
           append_body: true
-          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref ||  steps.version.outputs.version }}
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && '' ||  steps.version.outputs.version }}
           files: |
             boundaries-4326.gpkg
             pmtiles/counties.pmtiles
