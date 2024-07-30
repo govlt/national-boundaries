@@ -61,4 +61,10 @@ ogr2ogr -append boundaries-4326.gpkg data-sources/streets.json -lco FID=feature_
 echo "Finalizing GeoPackage"
 ogrinfo boundaries-4326.gpkg -sql "VACUUM"
 
+echo "Copying GeoPackage to data folder"
+
+mkdir -p data
+cp boundaries-4326.gpkg data/boundaries-4326.gpkg
+
 echo "GeoPackage database created successfully"
+
