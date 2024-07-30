@@ -10,13 +10,13 @@ public class Elderships implements Layer {
     @Override
     public void processFeature(SourceFeature sf, FeatureCollector features) {
         if (sf.getSource().equals(Source.BOUNDARIES) && sf.getSourceLayer().equals(Layers.ELDERSHIPS) && sf.canBePolygon()) {
-            var fid = sf.getLong("feature_id");
+            var featureId = sf.getLong("feature_id");
 
             features.polygon(Layers.ELDERSHIPS)
                     .setBufferPixels(4)
                     .setMinPixelSizeAtAllZooms(0)
-                    .setId(fid)
-                    .setAttr("id", fid)
+                    .setId(featureId)
+                    .setAttr("feature_id", featureId)
                     .setAttr("name", sf.getTag("name"))
                     .setAttr("code", sf.getTag("code"))
                     .setAttr("municipality_code", sf.getTag("municipality_code"));
