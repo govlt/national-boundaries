@@ -1,0 +1,98 @@
+name: Check for data source updates
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 13 * * *"
+
+jobs:
+  check-for-updates:
+    name: Check for updates
+    runs-on: ubuntu-latest
+    container: ghcr.io/osgeo/gdal:ubuntu-full-3.9.1
+    concurrency: check-for-data-source-updates
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    outputs:
+      diff: ${{ steps.comparison.outputs.diff }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Crete GeoPackage
+        run: chmod +x create-geopackage.sh && ./create-geopackage.sh
+
+      - name: Upload data-source-checksums.txt artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: data-source-checksums.txt
+          path: data-sources/data-source-checksums.txt
+          if-no-files-found: error
+
+      - name: Upload GeoPackage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: boundaries-4326.gpkg
+          path: boundaries-4326.gpkg
+          if-no-files-found: error
+
+      - name: Download latest data source hashes
+        run: wget -O published-data-source-checksums.txt "https://github.com/govlt/national-boundaries/releases/latest/download/data-source-checksums.txt"
+
+      - name: Upload published-data-source-checksums.txt artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: published-data-source-checksums.txt
+          path: published-data-source-checksums.txt
+          if-no-files-found: error
+
+      - name: Check that the files are the exact same
+        id: comparison
+        run: |
+          { 
+            echo 'diff<<EOF'
+            (diff -u 'published-data-source-checksums.txt' 'data-sources/data-source-checksums.txt' || :)
+            echo 'EOF'
+          } >> "${GITHUB_OUTPUT}"
+
+  create-release:
+    name: Create release
+    if: ${{ needs.check-for-updates.outputs.diff != '' }}
+    runs-on: ubuntu-latest
+    concurrency: check-for-data-source-updates-create-release
+    needs:
+      - check-for-updates
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get Token for creating new Release
+        id: get_workflow_token
+        uses: peter-murray/workflow-application-token-action@v3
+        with:
+          application_id: ${{ secrets.APPLICATION_ID }}
+          application_private_key: ${{ secrets.APPLICATION_PRIVATE_KEY }}
+          permissions: "contents:write"
+          revoke_token: true
+
+      - name: Get next version
+        uses: reecetech/version-increment@2024.4.4
+        id: version
+        with:
+          scheme: calver
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          make_latest: false
+          tag_name: ${{ steps.version.outputs.version }}
+          token: ${{ steps.get_workflow_token.outputs.token }}
+          body: |
+            Automated release after data source update
+            
+            ```
+            ${{ needs.check-for-updates.outputs.diff }}
+            ```

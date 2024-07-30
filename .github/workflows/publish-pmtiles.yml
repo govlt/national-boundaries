@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
   pull_request:
   workflow_dispatch:
 
@@ -21,7 +23,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Generate
+      - name: Crete GeoPackage
         run: chmod +x create-geopackage.sh && ./create-geopackage.sh
 
       - name: Upload GeoPackage artifact
@@ -122,6 +124,7 @@ jobs:
 
       - name: Get next version
         uses: reecetech/version-increment@2024.4.4
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         id: version
         with:
           scheme: calver
@@ -131,7 +134,8 @@ jobs:
         with:
           make_latest: true
           generate_release_notes: true
-          tag_name: ${{ steps.version.outputs.version }}
+          append_body: true
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref ||  steps.version.outputs.version }}
           files: |
             boundaries-4326.gpkg
             pmtiles/counties.pmtiles
