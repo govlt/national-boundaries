@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.onthegomap.planetiler:planetiler-core:0.8.0")
+    implementation("com.onthegomap.planetiler:planetiler-core:0.8.2")
 
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
