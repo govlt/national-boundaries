@@ -17,10 +17,13 @@ jobs:
     outputs:
       diff: ${{ steps.comparison.outputs.diff }}
     steps:
+      - name: Install csvkit
+        run: apt-get update && apt-get install -y csvkit
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Crete GeoPackage
+      - name: Create GeoPackage
         run: chmod +x create-geopackage.sh && ./create-geopackage.sh
 
       - name: Upload data-source-checksums.txt artifact

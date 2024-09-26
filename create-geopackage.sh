@@ -58,7 +58,7 @@ download_data_source_and_md5 streets.json "https://www.registrucentras.lt/aduome
 ogr2ogr -append boundaries-4326.gpkg data-sources/streets.json -lco FID=feature_id -xyRes 0.000001 -t_srs EPSG:4326 \
   -sql "SELECT FID AS feature_id, GAT_KODAS AS code, GAT_PAV as name, GAT_PAV_PI AS full_name, GAT_ILGIS as length_m, GYV_KODAS AS residential_area_code, GTV_R AS created_at FROM streets"
 
-echo "Importing parcels for each municipality"
+echo "Importing parcels data for each municipality"
 curl -sf "https://www.registrucentras.lt/aduomenys/?byla=adr_savivaldybes.csv" | csvcut -d "|" -c "SAV_KODAS" | tail -n +2 | while read -r code; do
   echo "Converting https://www.registrucentras.lt/aduomenys/?byla=gis_pub_parcels_$code.zip"
   curl -f -L --max-redirs 5 --retry 3 -o "data-sources/parcels-$code.zip" "https://www.registrucentras.lt/aduomenys/?byla=gis_pub_parcels_$code.zip"
