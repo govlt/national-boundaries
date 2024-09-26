@@ -14,6 +14,9 @@
     },
     "streets": {
       "pmtiles": "/opt/data/streets.pmtiles"
+    },
+    "parcels": {
+      "pmtiles": "/opt/data/parcels.pmtiles"
     }
   }
 }
