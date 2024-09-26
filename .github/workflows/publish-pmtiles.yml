@@ -168,15 +168,9 @@ jobs:
           merge-multiple: true
 
       # Cloudflare Pages only supports files up to 25 MiB in size
-      # Temporary delete this file
-      - name: Delete residential-areas.pmtiles
-        run: rm output/pmtiles/residential-areas.pmtiles
-
-      # Cloudflare Pages only supports files up to 25 MiB in size
-      # Temporary delete this file
-      - name: Delete parcels.pmtiles
-        run: rm output/pmtiles/parcels.pmtiles
-
+      # Temporary delete these file
+      - name: Delete files over 25 MiB
+        run: rm output/pmtiles/residential-areas.pmtiles output/pmtiles/parcels.pmtiles
 
       - name: Upload to Cloudflare pages
         uses: cloudflare/wrangler-action@v3
