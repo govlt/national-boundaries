@@ -143,6 +143,7 @@ jobs:
             pmtiles/elderships.pmtiles
             pmtiles/residential-areas.pmtiles
             pmtiles/streets.pmtiles
+            pmtiles/parcels.pmtiles
             data-source-checksums.txt
 
   publish-page:
@@ -167,6 +168,11 @@ jobs:
       # Temporary delete this file
       - name: Delete residential-areas.pmtiles
         run: rm output/pmtiles/residential-areas.pmtiles
+
+      # Cloudflare Pages only supports files up to 25 MiB in size
+      # Temporary delete this file
+      - name: Delete parcels.pmtiles
+        run: rm output/pmtiles/parcels.pmtiles
 
 
       - name: Upload to Cloudflare pages
