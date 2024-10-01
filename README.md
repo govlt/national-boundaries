@@ -32,14 +32,14 @@ Use hosted versions of boundaries on your website, with global low latency and h
 
 Download the latest PMTiles archives and host them on your own server.
 
-| Type                  | Lithuanian Translation    | PMTiles Archive URL                                                                                                          |
-| --------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| **Counties**          | Apskričių ribos           | [counties.pmtiles](https://github.com/govlt/national-boundaries/releases/latest/download/counties.pmtiles)                   |
-| **Municipalities**    | Savivaldybių ribos        | [municipalities.pmtiles](https://github.com/govlt/national-boundaries/releases/latest/download/municipalities.pmtiles)       |
-| **Elderships**        | Seniūnijų ribos           | [elderships.pmtiles](https://github.com/govlt/national-boundaries/releases/latest/download/elderships.pmtiles)               |
-| **Residential Areas** | Gyvenamųjų vietovių ribos | [residential-areas.pmtiles](https://github.com/govlt/national-boundaries/releases/latest/download/residential-areas.pmtiles) |
-| **Streets**           | Gatvių ribos              | [streets.pmtiles](https://github.com/govlt/national-boundaries/releases/latest/download/streets.pmtiles)                     |
-| **Parcels**           | Žemės sklypų ribos        | [parcels.pmtiles](https://github.com/govlt/national-boundaries/releases/latest/download/parcels.pmtiles)                     |
+| Type                  | Lithuanian Translation    | PMTiles Archive URL                                                                                                                                      |
+| --------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Counties**          | Apskričių ribos           | [counties.pmtiles](https://github.com/govlt/national-boundaries/releases/latest/download/counties.pmtiles)                                               |
+| **Municipalities**    | Savivaldybių ribos        | [municipalities.pmtiles](https://github.com/govlt/national-boundaries/releases/latest/download/municipalities.pmtiles)                                   |
+| **Elderships**        | Seniūnijų ribos           | [elderships.pmtiles](https://github.com/govlt/national-boundaries/releases/latest/download/elderships.pmtiles)                                           |
+| **Residential Areas** | Gyvenamųjų vietovių ribos | [residential-areas.pmtiles](https://github.com/govlt/national-boundaries/releases/latest/download/residential-areas.pmtiles)                             |
+| **Streets**           | Gatvių ribos              | [streets.pmtiles](https://github.com/govlt/national-boundaries/releases/latest/download/streets.pmtiles)                                                 |
+| **Parcels**           | Žemės sklypų ribos        | [parcels.pmtiles](https://github.com/govlt/national-boundaries/releases/latest/download/parcels.pmtiles)<br/>(**Important:** visible from zoom level 14) |
 
 ## Architecture
 
