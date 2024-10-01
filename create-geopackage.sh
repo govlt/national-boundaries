@@ -70,7 +70,7 @@ done
 
 echo "Finishing parcels data import into GeoPackage"
 ogr2ogr -append boundaries-4326.gpkg data-sources/parcels.gpkg -nln parcels -xyRes 0.000001 -t_srs EPSG:4326 \
-  -sql "SELECT polygons.unikalus_nr AS unique_number, CAST(polygons.pask_tipas AS integer(8)) AS purpose_id, CAST(polygons.osta_statusas AS integer(8)) AS status_id, polygons.geom, polygons.kadastro_nr as cadastral_number, CAST(polygons.sav_kodas AS integer(8)) AS municipality_code, CAST(polygons.seniunijos_kodas AS integer(8)) AS eldership_code, CAST(polygons.skl_plotas AS FLOAT) as area_ha, date(polygons.data_rk) as updated_at FROM polygons"
+  -sql "SELECT polygons.unikalus_nr AS unique_number, CAST(polygons.pask_tipas AS integer(8)) AS purpose_id, CAST(polygons.osta_statusas AS integer(8)) AS status_id, polygons.geom, polygons.kadastro_nr as cadastral_number, CAST(polygons.sav_kodas AS integer(8)) AS municipality_code, CAST(polygons.seniunijos_kodas AS integer(8)) AS eldership_code, CAST(polygons.skl_plotas AS FLOAT) as area_ha FROM polygons"
 
 echo "Finalizing GeoPackage"
 ogrinfo boundaries-4326.gpkg -sql "VACUUM"
