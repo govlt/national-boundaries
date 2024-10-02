@@ -24,7 +24,7 @@ public class Parcels implements Layer {
                     .setAttr("cadastral_number", sf.getString("cadastral_number"))
                     .setAttr("status_id", status_id != 0 ? status_id : null)
                     .setAttr("purpose_id", purpose_id != 0 ? purpose_id : null)
-                    .setAttr("area_ha", sf.getLong("area_ha"))
+                    .setAttr("area_ha", sf.getString("area_ha"))
                     .setAttr("municipality_code", municipality_code != 0 ? municipality_code : null)
                     .setAttr("eldership_code", eldership_code != 0 ? eldership_code : null);
         }
