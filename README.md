@@ -45,12 +45,17 @@ Download the latest PMTiles archives and host them on your own server.
 
 ```mermaid
 flowchart TD
-    ar["State Enterprise Centre of Registers\n<a href='https://www.registrucentras.lt/p/1187'>Address Registry raw data</a>\n<a href='https://www.registrucentras.lt/p/1092'>Parcels raw data</a>"]
-    --> transform["<a href='https://github.com/govlt/national-boundaries/blob/main/create-geopackage.sh'>Create GeoPackage</a>"]
-    --> |"<a href='https://github.com/govlt/national-boundaries/releases/latest/download/boundaries-4326.gpkg'>boundaries-4326.gpkg</a>"|github-releases
+    rc["<a href='https://www.registrucentras.lt'>State Enterprise Centre of Registers</a>"]
+    rc-->ar["<a href='https://www.registrucentras.lt/p/1187'>Address Registry raw data</a>"]
+    rc-->pr["<a href='https://www.registrucentras.lt/p/1092'>Parcels raw data</a>"]
 
+    transform["<a href='https://github.com/govlt/national-boundaries/blob/main/create-geopackage.sh'>Create GeoPackage</a>"]-->|"<a href='https://github.com/govlt/national-boundaries/releases/latest/download/boundaries-4326.gpkg'>boundaries-4326.gpkg</a>"|github-releases    
+    
     github-releases["<a href='https://github.com/govlt/national-boundaries/releases'>GitHub Releases</a>"]--> cloudflare-pages["Cloudflare Pages"]
 
+    ar-->transform
+    pr-->transform
+    
     cloudflare-pages-->pages-counties["<a href='https://boundaries.startupgov.lt/pmtiles/counties.pmtiles'>counties.pmtiles</a>"]
     cloudflare-pages-->pages-municipalities["<a href='https://boundaries.startupgov.lt/pmtiles/municipalities.pmtiles'>municipalities.pmtiles</a>"]
     cloudflare-pages-->pages-elderships["<a href='https://boundaries.startupgov.lt/pmtiles/elderships.pmtiles'>elderships.pmtiles</a>"]
