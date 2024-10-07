@@ -20,10 +20,13 @@ jobs:
     permissions:
       contents: read
     steps:
+      - name: Install csvkit
+        run: apt-get update && apt-get install -y csvkit
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Crete GeoPackage
+      - name: Create GeoPackage
         run: chmod +x create-geopackage.sh && ./create-geopackage.sh
 
       - name: Upload GeoPackage artifact
@@ -143,6 +146,7 @@ jobs:
             pmtiles/elderships.pmtiles
             pmtiles/residential-areas.pmtiles
             pmtiles/streets.pmtiles
+            pmtiles/parcels.pmtiles
             data-source-checksums.txt
 
   publish-page:
@@ -164,10 +168,9 @@ jobs:
           merge-multiple: true
 
       # Cloudflare Pages only supports files up to 25 MiB in size
-      # Temporary delete this file
-      - name: Delete residential-areas.pmtiles
-        run: rm output/pmtiles/residential-areas.pmtiles
-
+      # Temporary delete these file
+      - name: Delete files over 25 MiB
+        run: rm output/pmtiles/residential-areas.pmtiles output/pmtiles/parcels.pmtiles
 
       - name: Upload to Cloudflare pages
         uses: cloudflare/wrangler-action@v3

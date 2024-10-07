@@ -43,6 +43,11 @@ public class Main extends ForwardingProfile {
                     "streets.pmtiles",
                     new Streets()
             ),
+            new LayerConfiguration(
+                    "Parcels of Lithuania",
+                    "parcels.pmtiles",
+                    new Parcels()
+            ),
     };
 
     public static void main(String[] args) {
