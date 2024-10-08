@@ -1,0 +1,27 @@
+{
+	auto_https off
+
+	servers {
+		trusted_proxies static private_ranges
+	}
+}
+
+:80
+
+root * /srv
+
+handle /health {
+	log_skip
+	@goingDown vars {http.shutting_down} true
+	respond @goingDown "Bye-bye in {http.time_until_shutdown}" 503
+	respond "OK"
+}
+
+try_files {path} {file}
+file_server
+
+header -Server
+
+handle_errors {
+	header -Server
+}
