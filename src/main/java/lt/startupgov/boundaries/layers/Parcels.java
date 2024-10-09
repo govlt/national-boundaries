@@ -1,9 +1,11 @@
 package lt.startupgov.boundaries.layers;
 
 import com.onthegomap.planetiler.FeatureCollector;
+import com.onthegomap.planetiler.geo.GeometryException;
 import com.onthegomap.planetiler.reader.SourceFeature;
 import lt.startupgov.boundaries.constants.Layers;
 import lt.startupgov.boundaries.constants.Source;
+import org.geotools.process.geometry.GeometryFunctions;
 
 public class Parcels implements Layer {
 
@@ -27,6 +29,20 @@ public class Parcels implements Layer {
                     .setAttr("area_ha", sf.getString("area_ha"))
                     .setAttr("municipality_code", municipality_code != 0 ? municipality_code : null)
                     .setAttr("eldership_code", eldership_code != 0 ? eldership_code : null);
+
+            try {
+                var pointGeom = GeometryFunctions.interiorPoint(sf.polygon());
+    
+                features.geometry(Layers.PARCELS_LABEL, pointGeom)
+                        .setBufferPixels(4)
+                        .setMinPixelSizeAtAllZooms(0)
+                        .setMinZoom(14)
+                        .setAttr("unique_number", sf.getLong("unique_number"))
+                        .setAttr("cadastral_number", sf.getString("cadastral_number"))
+                        .setAttr("area_ha", sf.getString("area_ha"));
+            } catch (GeometryException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }
