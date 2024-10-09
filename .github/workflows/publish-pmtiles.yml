@@ -175,7 +175,7 @@ jobs:
           docker-image: ghcr.io/govlt/national-boundaries-vector
           docker-context: vector/docker/static
           file: vector/docker/static/Dockerfile
-          environment: ${{ (startsWith(github.ref, 'refs/tags/') && !contains(github.ref, 'pre')) && 'stable' || 'preview' }}
+          environment: ${{ startsWith(github.ref, 'refs/tags/') && 'stable' || 'preview' }}
           no-cache: true
           push: true
           cache-from: ''

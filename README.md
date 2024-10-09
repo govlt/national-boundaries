@@ -30,6 +30,8 @@ Use hosted versions of boundaries on your website, with global low latency and h
 
 ### Self-Hosting
 
+#### PMTiles
+
 Download the latest PMTiles archives and host them on your own server.
 
 | Type                  | Lithuanian Translation    | PMTiles Archive URL                                                                                                                                      |
@@ -40,6 +42,33 @@ Download the latest PMTiles archives and host them on your own server.
 | **Residential Areas** | Gyvenamųjų vietovių ribos | [residential-areas.pmtiles](https://github.com/govlt/national-boundaries/releases/latest/download/residential-areas.pmtiles)                             |
 | **Streets**           | Gatvių ribos              | [streets.pmtiles](https://github.com/govlt/national-boundaries/releases/latest/download/streets.pmtiles)                                                 |
 | **Parcels**           | Žemės sklypų ribos        | [parcels.pmtiles](https://github.com/govlt/national-boundaries/releases/latest/download/parcels.pmtiles)<br/>(**Important:** visible from zoom level 14) |
+
+Ensure to periodically download the PMTiles archives mentioned above to
+your own S3 or file storage and utilize them as needed.
+
+#### Docker Vector Tiles
+
+Utilize the provided Docker
+image [national-boundaries-vector](https://github.com/govlt/national-boundaries/pkgs/container/national-boundaries-vector),
+which includes all PMTiles enabling you to serve vector tiles on-the-fly.
+
+Here's an example of its usage with Docker Compose:
+
+```yaml
+services:
+  national-boundaries-vector:
+    image: ghcr.io/govlt/national-boundaries-vector:stable
+    pull_policy: always
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:80/health || exit 1" ]
+      interval: 5s
+      timeout: 3s
+      start_period: 5s
+      retries: 5
+```
 
 ## Architecture
 
