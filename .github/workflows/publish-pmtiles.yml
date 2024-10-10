@@ -96,7 +96,7 @@ jobs:
     concurrency: publish-release
     if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') }}
     outputs: 
-      version: ${{ steps.version.outputs.version }}
+      version: ${{ steps.version.outputs.version || '' }}
     needs:
       - generate-geopackage
       - generate-pmtiles
