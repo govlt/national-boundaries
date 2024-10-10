@@ -30,6 +30,7 @@ public class ResidentialAreas implements Layer {
                 features.geometry(Layers.RESIDENTIAL_AREAS_LABEL, pointGeom)
                         .setBufferPixels(4)
                         .setMinPixelSizeAtAllZooms(0)
+                        .setMinZoom(10)
                         .setId(featureId)
                         .setAttr("feature_id", featureId)
                         .setAttr("code", sf.getTag("code"))
