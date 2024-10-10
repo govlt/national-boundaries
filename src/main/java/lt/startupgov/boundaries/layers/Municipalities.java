@@ -1,9 +1,11 @@
 package lt.startupgov.boundaries.layers;
 
 import com.onthegomap.planetiler.FeatureCollector;
+import com.onthegomap.planetiler.geo.GeometryException;
 import com.onthegomap.planetiler.reader.SourceFeature;
 import lt.startupgov.boundaries.constants.Layers;
 import lt.startupgov.boundaries.constants.Source;
+import org.geotools.process.geometry.GeometryFunctions;
 
 public class Municipalities implements Layer {
 
@@ -20,6 +22,20 @@ public class Municipalities implements Layer {
                     .setAttr("code", sf.getTag("code"))
                     .setAttr("county_code", sf.getTag("county_code"))
                     .setAttr("name", sf.getTag("name"));
+
+            try {
+                var pointGeom = GeometryFunctions.interiorPoint(sf.polygon());
+    
+                features.geometry(Layers.MUNICIPALITIES_LABEL, pointGeom)
+                        .setBufferPixels(4)
+                        .setMinPixelSizeAtAllZooms(0)
+                        .setId(featureId)
+                        .setAttr("feature_id", featureId)
+                        .setAttr("code", sf.getTag("code"))
+                        .setAttr("name", sf.getTag("name"));
+            } catch (GeometryException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }
