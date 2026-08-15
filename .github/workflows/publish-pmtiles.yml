@@ -26,8 +26,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Registrų Centras blocks US IPs and GitHub runners are US-hosted, so these
+      # downloads go out through a proxy. curl reads ALL_PROXY natively
       - name: Create GeoPackage
         run: chmod +x create-geopackage.sh && ./create-geopackage.sh
+        env:
+          ALL_PROXY: ${{ secrets.DATA_SOURCE_PROXY_URL }}
 
       - name: Upload GeoPackage artifact
         uses: actions/upload-artifact@v4
@@ -153,7 +157,7 @@ jobs:
     name: Vector docker image build and push
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: 
+    needs:
       - generate-geopackage
       - generate-pmtiles
     permissions:
